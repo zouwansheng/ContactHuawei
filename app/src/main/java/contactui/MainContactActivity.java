@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 
 import com.zws.ble.contacthuawei.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ import java.util.Map;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import insert.AlreadyInsertActivity;
 
 public class MainContactActivity extends Activity {
     @InjectView(R.id.image)
@@ -72,6 +75,9 @@ public class MainContactActivity extends Activity {
     };
     private String[] nameContact;
     private  int num_selected = 0;
+    private List<String> listName;
+    private List<Map<String, SortModel>> contactMessage;
+    private int groupNeedId;//名片夹的id
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,18 +100,109 @@ public class MainContactActivity extends Activity {
     }
 
     /**
+     * 获取联系人分组下的所有联系人
+     * */
+    private void getListAll(int groupId) {
+        String[] RAW_PROJECTION = new String[] { ContactsContract.Data.RAW_CONTACT_ID, };
+
+        String RAW_CONTACTS_WHERE = ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID
+                + "=?"
+                + " and "
+                + ContactsContract.Data.MIMETYPE
+                + "="
+                + "'"
+                + ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE
+                + "'";
+
+        // 通过分组的id 查询得到RAW_CONTACT_ID
+        Cursor cursor = getContentResolver().query(
+                ContactsContract.Data.CONTENT_URI, RAW_PROJECTION,
+                RAW_CONTACTS_WHERE, new String[] { groupId + "" }, "data1 asc");
+
+        while (cursor.moveToNext()) {
+            // RAW_CONTACT_ID
+            int col = cursor.getColumnIndex("raw_contact_id");
+            int raw_contact_id = cursor.getInt(col);
+
+            Log.e("zws", "raw_contact_id:" +
+                    raw_contact_id);
+
+            Uri dataUri = Uri.parse("content://com.android.contacts/data");
+            Cursor dataCursor = getContentResolver().query(dataUri,
+                    null, "raw_contact_id=?",
+                    new String[] { raw_contact_id + "" }, null);
+            String name = "";
+            String email = "";
+            String phone = "";
+            String address = "";
+            String ognization = "";
+            String website = "";
+            List<String> phoneList = new ArrayList<>();
+            while (dataCursor.moveToNext()) {
+                String data1 = dataCursor.getString(dataCursor
+                        .getColumnIndex("data1"));
+                String mime = dataCursor.getString(dataCursor
+                        .getColumnIndex("mimetype"));
+                Log.e("zws", "mime = "+mime);
+                StringBuilder stringBuilder = new StringBuilder();
+                if ("vnd.android.cursor.item/phone_v2".equals(mime)) {
+                    // Log.e("zws", "data1 v2"+data1+"groupId"+groupId);
+                    stringBuilder.append("phone_v2 = "+data1);
+                    phoneList.add(data1);
+                } else if ("vnd.android.cursor.item/name".equals(mime)) {
+                    // Log.e("zws", "data1 name"+data1+"groupId"+groupId);
+                    stringBuilder.append("name = "+data1);
+                    name = data1;
+                }else if ("vnd.android.cursor.item/email_v2".equals(mime)){
+                    stringBuilder.append("email_v2 = "+data1);
+                    email = data1;
+                }else if ("vnd.android.cursor.item/organization".equals(mime)){
+                    stringBuilder.append("organization = "+data1);
+                    ognization = data1;
+                }else if ("vnd.android.cursor.item/photo".equals(mime)){
+                    stringBuilder.append("photo = "+data1);
+                }else if ("vnd.android.cursor.item/postal-address_v2".equals(mime)){
+                    stringBuilder.append("postal-address_v2 = "+data1);
+                    address = data1;
+                }else if ("vnd.android.cursor.item/group_membership".equals(mime)){
+                    stringBuilder.append("group_membership = "+data1);
+                }else if ("vnd.android.cursor.item/website".equals(mime)){
+                    stringBuilder.append("website = "+data1);
+                    website = data1;
+                }else if ("vnd.android.cursor.item/im".equals(mime)){
+                    stringBuilder.append("im = "+data1);
+                }
+                Log.e("zws", "个人信息 = "+stringBuilder);
+            }
+            dataCursor.close();
+            listName.add(name);
+            Map<String, SortModel> stringMap = new HashMap<>();
+            SortModel sorModel = new SortModel();
+            sorModel.mobilePhone = phoneList;
+            sorModel.email_v2 = email;
+            sorModel.organization = ognization;
+            sorModel.website = website;
+            sorModel.postal_address_v2 = address;
+            sorModel.name = name;
+            sorModel.raw_contact_id = raw_contact_id;
+            stringMap.put(name, sorModel);
+            contactMessage.add(stringMap);
+        }
+        cursor.close();
+    }
+    /**
      * 获取联系人信息
      */
     private void getContactMessage() {
         proDialog = new ProgressDialog(MainContactActivity.this);
         proDialog.setMessage("正在加载联系人...");
         proDialog.show();
-        final List<String> listName = new ArrayList<>();
-        final List<Map<String, String>> contactMessage = new ArrayList<>();
+        listName = new ArrayList<>();
+        contactMessage = new ArrayList<>();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Uri uri = ContactsContract.Contacts.CONTENT_URI;
+                /*Uri uri = ContactsContract.Contacts.CONTENT_URI;
                 ContentResolver contentResolver = MainContactActivity.this.getContentResolver();
                 Cursor cursor = contentResolver.query(uri, null, null, null, null);
                 while (cursor.moveToNext()) {
@@ -130,12 +227,31 @@ public class MainContactActivity extends Activity {
                     phones.close();
                     contactMessage.add(stringMap);
                 }
-                cursor.close();
-                nameContact = new String[listName.size()];
-                for (int i = 0; i < listName.size(); i++) {
-                    nameContact[i] = listName.get(i);
+                cursor.close();*/
+                Uri uri = ContactsContract.Contacts.CONTENT_URI;
+                ContentResolver contentResolver = MainContactActivity.this.getContentResolver();
+                Cursor cursor = null;
+                try {
+                    cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI,
+                            null, null, null, null);
+                    while (cursor.moveToNext()){
+                        int groupId = cursor.getInt(cursor.getColumnIndex(ContactsContract.Groups._ID)); // 组id
+                        String groupName = cursor.getString(cursor
+                                .getColumnIndex(ContactsContract.Groups.TITLE)); // 组名
+                        if (groupName.equals("PREDEFINED_HUAWEI_GROUP_CCARD")){
+                            groupNeedId = groupId;
+                            getListAll(groupId);
+                        }
+                       // String title = cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE_RES));
+                       // Log.e("zws", "groupId="+groupId+"groupName="+groupName+"title = "+title);
+                    }
+                }finally {
+                    if (cursor!=null){
+                        cursor.close();
+                    }
                 }
-                SourceDateList = filledData(nameContact, contactMessage);
+
+                SourceDateList = filledData(listName, contactMessage);
                 proDialog.dismiss();
                 // 排序
                 Collections.sort(SourceDateList, pinyinComparator);
@@ -143,6 +259,17 @@ public class MainContactActivity extends Activity {
                     @Override
                     public void run() {
                         adapter = new SortAdapter(MainContactActivity.this, SourceDateList);
+                        adapter.setCheckboxClick(new SortAdapter.CheckboxClickListen() {
+                            @Override
+                            public void onItemCheck(boolean checkBox) {
+                                if (checkBox){
+                                    num_selected++;
+                                }else {
+                                    num_selected--;
+                                }
+                                numSelected.setText(num_selected+"");
+                            }
+                        });
                         sortListView.setAdapter(adapter);
                     }
                 });
@@ -158,12 +285,14 @@ public class MainContactActivity extends Activity {
                 SortModel sortModel = (SortModel) adapter.getItem(position);
                 boolean checked = sortModel.getChecked();
                 sortModel.setChecked(!checked);
+                List<SortModel> list = new ArrayList<>();
+                list.add(sortModel);
                 if (!checked){
-                    Toast.makeText(MainContactActivity.this, sortModel.getName()+"选中了", Toast.LENGTH_SHORT).show();
                     num_selected++;
+                    adapter.setSelectList(list,1);
                 }else {
-                    Toast.makeText(MainContactActivity.this, sortModel.getName()+"取消选中了", Toast.LENGTH_SHORT).show();
                     num_selected--;
+                    adapter.setSelectList(list,2);
                 }
                 adapter.notifyDataSetChanged();
                 numSelected.setText(num_selected+"");
@@ -174,17 +303,21 @@ public class MainContactActivity extends Activity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean ischeck) {
                 List<SortModel> list = adapter.getList();
+                List<SortModel> list_beiyong = new ArrayList<>();
                 if (ischeck){
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setChecked(true);
                     }
+                    adapter.setSelectList(list, 3);
                     adapter.updateListView(list);
                     num_selected = list.size();
                 }else {
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setChecked(false);
+                        list_beiyong.add(list.get(i));
                     }
-                    adapter.updateListView(list);
+                    adapter.setSelectList(list, 4);
+                    adapter.updateListView(list_beiyong);
                     num_selected = 0;
                 }
                 numSelected.setText(num_selected+"");
@@ -242,7 +375,11 @@ public class MainContactActivity extends Activity {
 
     @OnClick(R.id.insert_activity)
     void insertIntent(View view){
-
+        Log.e("zws", adapter.getSelectList().toString());
+        Intent intent = new Intent(MainContactActivity.this, AlreadyInsertActivity.class);
+        intent.putExtra("data", (Serializable) adapter.getSelectList());
+        intent.putExtra("groupId", groupNeedId);
+        startActivity(intent);
     }
     /**
      * ΪListView
@@ -250,14 +387,14 @@ public class MainContactActivity extends Activity {
      * @param date
      * @return
      */
-    private List<SortModel> filledData(String[] date, List<Map<String, String>> mapList) {
+    private List<SortModel> filledData(List<String> date, List<Map<String, SortModel>> mapList) {
         List<SortModel> mSortList = new ArrayList<SortModel>();
 
-        for (int i = 0; i < date.length; i++) {
+        for (int i = 0; i < date.size(); i++) {
             SortModel sortModel = new SortModel();
-            sortModel.setName(date[i]);
-            sortModel.setMobilePhone(mapList.get(i).get(date[i]));
-            String pinyin = characterParser.getSelling(date[i]);
+            sortModel.setName(date.get(i));
+            sortModel = mapList.get(i).get(date.get(i));
+            String pinyin = characterParser.getSelling(date.get(i));
             String sortString = pinyin.substring(0, 1).toUpperCase();
 
             if (sortString.matches("[A-Z]")) {
@@ -265,7 +402,6 @@ public class MainContactActivity extends Activity {
             } else {
                 sortModel.setSortLetters("#");
             }
-
             mSortList.add(sortModel);
         }
         return mSortList;
@@ -294,4 +430,5 @@ public class MainContactActivity extends Activity {
         Collections.sort(filterDateList, pinyinComparator);
         adapter.updateListView(filterDateList);
     }
+
 }

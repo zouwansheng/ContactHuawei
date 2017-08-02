@@ -11,4 +11,7 @@
     <color name="color_70c8ea">#70c8ea</color>
     <color name="color_5693f8">#5693f8</color>
     <color name="sbc_list_item">#fffff0e0</color>
+    <color name="height_yellow">#ff6600</color>
+    <color name="height_blue">#43CD80</color>
+    <color name="low_blue">#40E0D0</color>
 </resources>

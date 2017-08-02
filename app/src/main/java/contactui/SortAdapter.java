@@ -30,12 +30,25 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 	private List<SortModel> list = null;
 	
 	private Context mContext;
+	public CheckboxClickListen checkboxClickListen;
 
     public List<SortModel> getSelectList() {
         return selectList;
     }
 
-    private List<SortModel> selectList = new ArrayList<>();
+	public void setSelectList(List<SortModel> selectList, int type) {
+		if (type == 1){
+			this.selectList.addAll(selectList);
+		}else if (type == 2){
+			this.selectList.removeAll(selectList);
+		}else if (type == 3){
+            this.selectList = selectList;
+        }else if (type == 4){
+			this.selectList.clear();
+		}
+	}
+
+	private List<SortModel> selectList = new ArrayList<>();
 
 	public SortAdapter(Context mContext,List<SortModel> list){
 		this.mContext = mContext;
@@ -69,12 +82,12 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 		if (convertView== null) {
 			viewHolder = new ViewHolder();
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.item, null);
-			viewHolder.tvTitle =  convertView.findViewById(R.id.title);
-			viewHolder.tvLetter =  convertView.findViewById(R.id.catalog);
-			viewHolder.check_box = convertView.findViewById(R.id.checkbox_item);
-			viewHolder.tv_copy = convertView.findViewById(R.id.copy_item);
-			viewHolder.tv_phome = convertView.findViewById(R.id.mobile_item);
-			viewHolder.tv_name = convertView.findViewById(R.id.name_item);
+			viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.title);
+			viewHolder.tvLetter = (TextView) convertView.findViewById(R.id.catalog);
+			viewHolder.check_box = (CheckBox) convertView.findViewById(R.id.checkbox_item);
+			viewHolder.tv_copy = (TextView) convertView.findViewById(R.id.copy_item);
+			viewHolder.tv_phome = (TextView) convertView.findViewById(R.id.mobile_item);
+			viewHolder.tv_name = (TextView) convertView.findViewById(R.id.name_item);
 			convertView.setTag(viewHolder);
 		}else {
 			viewHolder = (ViewHolder) convertView.getTag();
@@ -88,8 +101,8 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 			viewHolder.tvLetter.setVisibility(View.GONE);
 		}
 		viewHolder.tvTitle.setText(mContent.getName());
-		if (!StringUtils.isNullOrEmpty(mContent.getMobilePhone()))
-		viewHolder.tv_phome.setText(mContent.getMobilePhone());
+		if (mContent.getMobilePhone().size()!=0)
+		viewHolder.tv_phome.setText(mContent.getMobilePhone().get(0));
 		viewHolder.tv_name.setText(mContent.getName().substring(0,1));
         int colorRan = new Random().nextInt(3);
 		if (colorRan == 0){
@@ -105,7 +118,6 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 		}else {
 			viewHolder.check_box.setChecked(false);
 		}
-
 		viewHolder.check_box.setOnClickListener(new View.OnClickListener() {
 
 			@Override
@@ -118,8 +130,8 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 					mContent.setChecked(true);
 					selectList.add(mContent);
 				}
+				checkboxClickListen.onItemCheck(mContent.getChecked());
 			}
-
 		});
 		return convertView;
 	}
@@ -177,5 +189,11 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 		}
 	}
 
-	
+	interface CheckboxClickListen{
+		void onItemCheck(boolean checkBox);
+	}
+
+	public void setCheckboxClick(CheckboxClickListen checkboxClickListen){
+		this.checkboxClickListen = checkboxClickListen;
+	}
 }
