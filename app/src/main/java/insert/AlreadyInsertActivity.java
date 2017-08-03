@@ -73,6 +73,7 @@ public class AlreadyInsertActivity extends Activity{
                     Log.e("zws", "sortModel = "+sortModel);
                 Intent intent = new Intent(AlreadyInsertActivity.this, EditActivity.class);
                 intent.putExtra("sortModel", sortModel);
+                intent.putExtra("groupId", groupId);
                 startActivity(intent);
             }
         });
@@ -81,18 +82,6 @@ public class AlreadyInsertActivity extends Activity{
 
     @OnClick(R.id.close_text)
     void closeActiv(View view){
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < sortModelList.size(); i++) {
-                    int raw_contact_id = sortModelList.get(i).getRaw_contact_id();
-                    //删除联系人
-                    deleteContact(raw_contact_id);
-                }
-            }
-        }).start();
-        Intent intent = new Intent(AlreadyInsertActivity.this, MainContactActivity.class);
-        startActivity(intent);*/
         finish();
     }
 

@@ -2,9 +2,16 @@ package http;
 
 import java.util.HashMap;
 
+import bean.ChannelBean;
+import bean.ComponyQueryBean;
+import bean.CountryBean;
+import bean.OriginBean;
+import bean.SalemanBean;
+import bean.TeamBean;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 
 /**
  * Created by zws on 2017/8/2.
@@ -15,26 +22,29 @@ public interface Inventroy {
     /**
      * 国家：get_countries
 
-     来源：get_sources
+     渠道：get_sources
 
-     渠道get_origins
+     来源 get_origins
 
      销售团队：get_saleteam_list
 
      销售员：get_saleman_list
      * */
-    @GET("get_countries")
-    Call<Object> getCountry(@Body HashMap hashMap);
+    @POST("get_countries")
+    Call<CountryBean> getCountry(@Body HashMap hashMap);
 
-    @GET("get_sources")
-    Call<Object> getSource(@Body HashMap hashMap);
+    @POST("get_sources")
+    Call<ChannelBean> getSource(@Body HashMap hashMap);
 
-    @GET("get_saleteam_list")
-    Call<Object> getSaleTeam(@Body HashMap hashMap);
+    @POST("get_saleteam_list")
+    Call<TeamBean> getSaleTeam(@Body HashMap hashMap);
 
-    @GET("get_saleman_list")
-    Call<Object> getSaleMan(@Body HashMap hashMap);
+    @POST("get_saleman_list")
+    Call<SalemanBean> getSaleMan(@Body HashMap hashMap);
 
-    @GET("渠道get_origins")
-    Call<Object> getOrigin(@Body HashMap hashMap);
+    @POST("get_origins")
+    Call<OriginBean> getOrigin(@Body HashMap hashMap);
+
+    @POST("get_company_by_name")
+    Call<ComponyQueryBean> getCompbyName(@Body HashMap hashMap);
 }

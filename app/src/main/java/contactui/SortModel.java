@@ -13,7 +13,7 @@ public class SortModel implements Serializable{
 	public List<String> mobilePhone;
 	public String organization;
 	public String email_v2;
-	public String postal_address_v2;
+	public List<String> postal_address_v2;
 	public boolean isChecked;
 	public String website;
 	public int raw_contact_id;
@@ -50,11 +50,11 @@ public class SortModel implements Serializable{
 		this.email_v2 = email_v2;
 	}
 
-	public String getPostal_address_v2() {
+	public List<String> getPostal_address_v2() {
 		return postal_address_v2;
 	}
 
-	public void setPostal_address_v2(String postal_address_v2) {
+	public void setPostal_address_v2(List<String> postal_address_v2) {
 		this.postal_address_v2 = postal_address_v2;
 	}
 

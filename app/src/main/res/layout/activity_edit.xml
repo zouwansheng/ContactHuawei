@@ -86,7 +86,8 @@
                     android:gravity="center_vertical|right"
                     android:maxLines="3"
                     android:ellipsize="end"
-                    android:textSize="12sp"/>
+                    android:textSize="12sp"
+                    android:layout_marginRight="15dp"/>
             </LinearLayout>
             <View
                 android:layout_width="match_parent"
@@ -234,6 +235,7 @@
                 android:background="@color/sbc_list_item"
                 android:layout_marginLeft="15dp"/>
             <RelativeLayout
+                android:id="@+id/tag_relative"
                 android:layout_width="match_parent"
                 android:layout_height="60dp">
                 <TextView
@@ -261,6 +263,7 @@
                     android:textSize="12sp"
                     android:layout_marginLeft="15dp"/>
                 <TextView
+                    android:id="@+id/tv_customer_tag"
                     android:layout_width="60dp"
                     android:layout_height="30dp"
                     android:background="@drawable/customer_text"
@@ -269,6 +272,27 @@
                     android:gravity="center"
                     android:layout_marginLeft="15dp"
                     android:layout_marginTop="5dp"/>
+                <TextView
+                    android:id="@+id/tv_level_tag"
+                    android:layout_width="60dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/customer_text"
+                    android:text="等级"
+                    android:layout_below="@+id/tv_biaoqian"
+                    android:gravity="center"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_toRightOf="@+id/tv_customer_tag"/>
+                <RatingBar
+                    style="@style/Base.Widget.AppCompat.RatingBar.Small"
+                    android:clickable="false"
+                    android:isIndicator="true"
+                    android:id="@+id/rating_tag_activity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/tv_level_tag"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginTop="35dp"/>
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -334,9 +358,6 @@
                     android:drawablePadding="10dp"
                     android:text="2"/>
             </LinearLayout>
-            <android.support.v7.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
         </LinearLayout>
     </ScrollView>
     <Button

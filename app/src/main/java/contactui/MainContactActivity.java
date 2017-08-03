@@ -138,6 +138,7 @@ public class MainContactActivity extends Activity {
             String ognization = "";
             String website = "";
             List<String> phoneList = new ArrayList<>();
+            List<String> addressList = new ArrayList<>();
             while (dataCursor.moveToNext()) {
                 String data1 = dataCursor.getString(dataCursor
                         .getColumnIndex("data1"));
@@ -164,6 +165,7 @@ public class MainContactActivity extends Activity {
                 }else if ("vnd.android.cursor.item/postal-address_v2".equals(mime)){
                     stringBuilder.append("postal-address_v2 = "+data1);
                     address = data1;
+                    addressList.add(data1);
                 }else if ("vnd.android.cursor.item/group_membership".equals(mime)){
                     stringBuilder.append("group_membership = "+data1);
                 }else if ("vnd.android.cursor.item/website".equals(mime)){
@@ -182,7 +184,7 @@ public class MainContactActivity extends Activity {
             sorModel.email_v2 = email;
             sorModel.organization = ognization;
             sorModel.website = website;
-            sorModel.postal_address_v2 = address;
+            sorModel.postal_address_v2 = addressList;
             sorModel.name = name;
             sorModel.raw_contact_id = raw_contact_id;
             stringMap.put(name, sorModel);
