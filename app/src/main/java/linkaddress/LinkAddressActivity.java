@@ -7,12 +7,14 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 
 import com.zws.ble.contacthuawei.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import contactui.SortModel;
+import edit.EditActivity;
 import query.QueryListActivity;
 
 /**
@@ -35,6 +38,7 @@ public class LinkAddressActivity extends Activity {
     private List<SortModel> sortModelList = new ArrayList<>();
     private LinearLayoutManager linearLayoutManager;
     private LinkAddressAdapter adapter;
+    private int positionId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,14 +63,16 @@ public class LinkAddressActivity extends Activity {
         recyclerLinkaddress.setAdapter(adapter);
         adapter.setSettingOnClickListener(new LinkAddressAdapter.SettingOnClickListener() {
             @Override
-            public void editOnclick(SortModel sortModel) {
+            public void editOnclick(SortModel sortModel, int position) {
                 Intent intent = new Intent(LinkAddressActivity.this, AddMessageActivity.class);
                 intent.putExtra("sortModel", sortModel);
+                Log.e("zws", "position = "+position);
+                positionId = position;
                 startActivityForResult(intent, 1000);
             }
 
             @Override
-            public void deleteLink(SortModel sortModel) {
+            public void deleteLink(SortModel sortModel, int position) {
 
             }
         });
@@ -74,6 +80,23 @@ public class LinkAddressActivity extends Activity {
 
     @OnClick(R.id.image_left)
     void closeThis(View view){
+        Intent intent = new Intent();
+        intent.putExtra("linkData", sortModel);
+        setResult(EditActivity.LINK_AND_ADDRESS_RESULT, intent);
         finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 999){
+            if (requestCode == 1000){
+                SortModel backSormodel = (SortModel) data.getSerializableExtra("backSormodel");
+                Log.e("zws", "type = "+backSormodel.getLinkType());
+                sortModel = backSormodel;
+                sortModelList.set(positionId, backSormodel);
+                adapter.notifyDataSetChanged();
+            }
+        }
     }
 }

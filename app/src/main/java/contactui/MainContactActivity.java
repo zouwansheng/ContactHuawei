@@ -3,8 +3,11 @@ package contactui;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -41,6 +44,7 @@ import butterknife.OnClick;
 import insert.AlreadyInsertActivity;
 
 public class MainContactActivity extends Activity {
+    public static String TIME_CHANGED_ACTION = "com.zws.action.TIME_CHANGED_ACTION";
     @InjectView(R.id.image)
     ImageView image;
     @InjectView(R.id.check_activity)
@@ -204,32 +208,6 @@ public class MainContactActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                /*Uri uri = ContactsContract.Contacts.CONTENT_URI;
-                ContentResolver contentResolver = MainContactActivity.this.getContentResolver();
-                Cursor cursor = contentResolver.query(uri, null, null, null, null);
-                while (cursor.moveToNext()) {
-                    //获取联系人的姓名
-                    String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                    String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));//联系人ID
-                    listName.add(name);
-                    //查询电话类型的数据操作
-                    Cursor phones = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id,
-                            null, null);
-                    Map<String, String> stringMap = new HashMap<String, String>();
-                    while (phones.moveToNext()) {
-                        String phoneNumber = phones.getString(phones.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        //添加Phone的信息
-                        Log.e("zws", name + "的电话号码" + phoneNumber + "所在分组的id" + id);
-                        stringMap.put(name, phoneNumber);
-                        break;
-                    }
-                    phones.close();
-                    contactMessage.add(stringMap);
-                }
-                cursor.close();*/
                 Uri uri = ContactsContract.Contacts.CONTENT_URI;
                 ContentResolver contentResolver = MainContactActivity.this.getContentResolver();
                 Cursor cursor = null;
@@ -433,4 +411,26 @@ public class MainContactActivity extends Activity {
         adapter.updateListView(filterDateList);
     }
 
+    /**
+     * 注册广播
+     */
+    private void registerBroadcastReceiver(){
+        ContactListReceive receiver = new ContactListReceive();
+        IntentFilter filter = new IntentFilter(TIME_CHANGED_ACTION);
+        registerReceiver(receiver, filter);
+    }
+    class ContactListReceive extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (TIME_CHANGED_ACTION.equals(action)){
+                getContactMessage();
+                /*Intent timeIntent = new Intent();
+                timeIntent.setAction(MainContactActivity.TIME_CHANGED_ACTION);
+                //发送广播，通知UI层时间改变了
+                sendBroadcast(timeIntent);*/
+            }
+        }
+    }
 }

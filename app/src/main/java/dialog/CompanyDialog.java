@@ -84,14 +84,14 @@ public class CompanyDialog extends Dialog {
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                getCompany.getCompanyName(result.get(position).getName());
+                getCompany.getCompanyName(result.get(position).getName(), result.get(position).getPartner_id());
                 dismiss();
             }
         });
     }
 
     public interface GetCompany{
-        void getCompanyName(String name);
+        void getCompanyName(String name, int company_id);
     }
 
     public void sendNameCompany(GetCompany getCompany){

@@ -1,6 +1,7 @@
 package insert;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import bean.CompanyAllModel;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -30,7 +32,12 @@ import contactui.ClearEditText;
 import contactui.MainContactActivity;
 import contactui.SortModel;
 import edit.EditActivity;
+import http.Inventroy;
+import http.RetrofitClient;
 import insert.adapter.InsertAdapter;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by zws on 2017/8/1.
@@ -49,6 +56,9 @@ public class AlreadyInsertActivity extends Activity{
     private List<SortModel> sortModelList;
     private InsertAdapter insertAdapter;
     private int groupId;
+    private CompanyAllModel model;
+    private Inventroy inventroy;
+    private List<CompanyAllModel> companyAllModels = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,6 +67,8 @@ public class AlreadyInsertActivity extends Activity{
         setContentView(R.layout.activity_alreadyinsert);
         ButterKnife.inject(this);
 
+        RetrofitClient.Url = "http://192.168.2.4:8069";
+        inventroy = RetrofitClient.getInstance(AlreadyInsertActivity.this).create(Inventroy.class);
         linearLayoutManager = new LinearLayoutManager(AlreadyInsertActivity.this);
         recyclerAlready.setLayoutManager(linearLayoutManager);
         Intent intent = getIntent();
@@ -66,6 +78,16 @@ public class AlreadyInsertActivity extends Activity{
     }
 
     private void initView() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ProgressDialog progressDialog = new ProgressDialog(AlreadyInsertActivity.this);
+                progressDialog.setMessage("数据整合中...");
+                progressDialog.show();
+                CompanyAllModel model = new CompanyAllModel();
+              //  companyAllModels.add();
+            }
+        }).start();
         insertAdapter = new InsertAdapter(R.layout.item_alreadyinsert, sortModelList);
         insertAdapter.setSettingOnClickListener(new InsertAdapter.SettingOnClickListener() {
             @Override
@@ -74,10 +96,31 @@ public class AlreadyInsertActivity extends Activity{
                 Intent intent = new Intent(AlreadyInsertActivity.this, EditActivity.class);
                 intent.putExtra("sortModel", sortModel);
                 intent.putExtra("groupId", groupId);
-                startActivity(intent);
+                startActivityForResult(intent, 100);
             }
         });
         recyclerAlready.setAdapter(insertAdapter);
+    }
+
+    /**
+     * 将Sortmodel类的数据转换成CompanyAllModel.result数据
+     * */
+    public static CompanyAllModel.LinkAndAddress changeTYpeBean(SortModel sortModel){
+        CompanyAllModel.LinkAndAddress linkAnd = new CompanyAllModel.LinkAndAddress();
+        linkAnd.setName(sortModel.getName());
+        linkAnd.setStreet(sortModel.getPostal_address_v2().get(0));
+        linkAnd.setPhone(sortModel.getMobilePhone().get(0));
+        linkAnd.setEmail(sortModel.getEmail_v2());
+        return linkAnd;
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 110){
+            if (requestCode == 100){
+                model = (CompanyAllModel) data.getSerializableExtra("companyAll");
+            }
+        }
     }
 
     @OnClick(R.id.close_text)
@@ -85,6 +128,26 @@ public class AlreadyInsertActivity extends Activity{
         finish();
     }
 
+    //完成
+    @OnClick(R.id.finish_text)
+    void uoloadMessage(View view){
+        HashMap<Object, Object> hashMap = new HashMap<>();
+        List<CompanyAllModel> modelList = new ArrayList<>();
+        modelList.add(model);
+        hashMap.put("partners", modelList);
+        Call<Object> objectCall = inventroy.addPaterner(hashMap);
+        objectCall.enqueue(new Callback<Object>() {
+            @Override
+            public void onResponse(Call<Object> call, Response<Object> response) {
+                if (response.body() == null)return;
+            }
+
+            @Override
+            public void onFailure(Call<Object> call, Throwable t) {
+
+            }
+        });
+    }
     /**
      * 删除联系人
      * */

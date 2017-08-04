@@ -20,13 +20,18 @@ import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zws.ble.contacthuawei.R;
 
+import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import bean.CompanyAllModel;
 import bean.ComponyQueryBean;
+import bean.LoginResponse;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -39,7 +44,11 @@ import query.QueryListActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import util.SharePreferenceUtils;
 import util.StringUtils;
+import util.UserManager;
+
+import static android.R.attr.level;
 
 /**
  * Created by zws on 2017/8/2.
@@ -58,6 +67,10 @@ public class EditActivity extends Activity {
     public static final int SELECT_SALEMAN_RESULT = 10;
     private static final int SELECT_TAG = 11;
     public static final int SELECT_TAG_RESULT = 12;
+    private static final int LINK_AND_ADDRESS = 13;
+    public static final int LINK_AND_ADDRESS_RESULT = 14;
+    private static final int SELECT_LIKE_PRODUCT = 15;
+    public static final int SELECT_LIKE_PRODUCT_RESULT = 16;
 
     @InjectView(R.id.cancel_text)
     TextView cancelText;
@@ -96,6 +109,15 @@ public class EditActivity extends Activity {
     private Inventroy inventroy;
     private ProgressDialog progressDialog;
     private int groupId;
+    private int country_id;
+    private int source_id;//渠道
+    private int src_id;//来源
+    private int team_id;//销售团队
+    private int partner_id;//销售员
+    private int series_id;//感兴趣的产品
+    private int partner_level;//等级
+    private int type_id;//客户供应商id
+    private int company_id;//公司id
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -118,6 +140,11 @@ public class EditActivity extends Activity {
         if (!StringUtils.isNullOrEmpty(sortModel.getOrganization())) {
             productName.setText(sortModel.getOrganization());
             productName.setSelection(productName.getText().length());
+        }
+        LoginResponse userInfoBean = UserManager.getSingleton().getUserInfoBean();
+        if (userInfoBean!=null){
+            saleTeam.setText(userInfoBean.getResult().getRes_data().getTeam().getTeam_name());
+            saleWorker.setText(userInfoBean.getResult().getRes_data().getName());
         }
         ratingTagActivity.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -181,12 +208,20 @@ public class EditActivity extends Activity {
         startActivityForResult(intent, SELECT_TAG);
     }
 
+    //感兴趣的产品
+    @OnClick(R.id.like_product)
+    void likeProduct(View view) {
+        Intent intent = new Intent(EditActivity.this, QueryListActivity.class);
+        intent.putExtra("type", "likeProduct");
+        startActivityForResult(intent, SELECT_LIKE_PRODUCT);
+    }
+
     //联系人&地址
     @OnClick(R.id.link_address)
     void setLinkAddress(View view){
         Intent intent = new Intent(EditActivity.this, LinkAddressActivity.class);
         intent.putExtra("sortModel", sortModel);
-        startActivity(intent);
+        startActivityForResult(intent, LINK_AND_ADDRESS);
     }
 
     //删除
@@ -205,7 +240,12 @@ public class EditActivity extends Activity {
                     }
                 }).start();
             }
-        });
+        }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        }).show();
     }
     /**
      * 删除联系人
@@ -238,6 +278,7 @@ public class EditActivity extends Activity {
             resolver.delete(dataUri, "raw_contact_id=?", new String[]{id+""});
         }
         cursor.close();
+        finish();
     }
     //查询
     @OnClick(R.id.btn_query)
@@ -256,8 +297,9 @@ public class EditActivity extends Activity {
                 dialog.show();
                 dialog.sendNameCompany(new CompanyDialog.GetCompany() {
                     @Override
-                    public void getCompanyName(String name) {
+                    public void getCompanyName(String name, int companyId) {
                         productName.setText(name);
+                        company_id = companyId;
                     }
                 });
             }
@@ -275,39 +317,111 @@ public class EditActivity extends Activity {
         if (resultCode == SELECT_COUNTRY_RESULT) {
             if (requestCode == SELECT_COUNTRY) {
                 String nameProduct = data.getStringExtra("nameProduct");
+                country_id = data.getIntExtra("country_id", 3);
                 countryName.setText(nameProduct);
             }
         } else if (resultCode == SELECT_CHANNEL_RESULT) {
             if (requestCode == SELECT_CHANNEL) {
                 String nameChannel = data.getStringExtra("channelName");
+                source_id = data.getIntExtra("source_id", 1);
                 channelFrom.setText(nameChannel);
             }
         } else if (resultCode == SELECT_ORIGIN_RESULT) {
             if (requestCode == SELECT_ORIGIN) {
                 String nameOrigin = data.getStringExtra("originName");
+                src_id = data.getIntExtra("src_id", 1);
                 fromWhere.setText(nameOrigin);
             }
         } else if (resultCode == SELECT_TEAM_RESULT) {
             if (requestCode == SELECT_TEAM) {
                 String nameOrigin = data.getStringExtra("teamName");
+                team_id = data.getIntExtra("team_id", 1);
                 saleTeam.setText(nameOrigin);
             }
         } else if (resultCode == SELECT_SALEMAN_RESULT) {
             if (requestCode == SELECT_SALEMAN) {
                 String nameOrigin = data.getStringExtra("salemanName");
+                partner_id = data.getIntExtra("partner_id", 1);
                 saleWorker.setText(nameOrigin);
             }
         } else if (resultCode == SELECT_TAG_RESULT) {
             if (requestCode == SELECT_TAG) {
-                String type = data.getStringExtra("type");
-                String level = data.getStringExtra("level");
+                String paterner_type = data.getStringExtra("type");
+                type_id = data.getIntExtra("type_id", 1);
+                partner_level = data.getIntExtra("level", 1);
                 float rating = data.getFloatExtra("rating", 5);
-                tvCustomerTag.setText(type);
-                tvLevelTag.setText(level);
+                tvCustomerTag.setText(paterner_type);
+                tvLevelTag.setText(partner_level+"st");
                 ratingTagActivity.setVisibility(View.VISIBLE);
                 ratingTagActivity.setRating(rating);
             }
+        }else if (resultCode == LINK_AND_ADDRESS_RESULT){
+            if (requestCode == LINK_AND_ADDRESS){
+                sortModel = (SortModel) data.getSerializableExtra("linkData");
+            }
+        }else if (requestCode == SELECT_LIKE_PRODUCT_RESULT){
+            if (requestCode == SELECT_LIKE_PRODUCT){
+                series_id = data.getIntExtra("series_id", 1);
+                String likeName = data.getStringExtra("likeName");
+                likeProduct.setText(likeName);
+            }
         }
+    }
 
+    @OnClick(R.id.save_text)
+    void saveEdit(View view){
+        String companyName = productName.getText().toString();
+        String country = countryName.getText().toString();
+        String team = saleTeam.getText().toString();
+        String saleman = saleWorker.getText().toString();
+        String custoTYpe = tvCustomerTag.getText().toString();
+        float rating = ratingTagActivity.getRating();
+        if (StringUtils.isNullOrEmpty(companyName)){
+            Toast.makeText(EditActivity.this, "请选择公司名", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (StringUtils.isNullOrEmpty(team)){
+            Toast.makeText(EditActivity.this, "请选择销售团队", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (StringUtils.isNullOrEmpty(saleman)){
+            Toast.makeText(EditActivity.this, "请选择销售员", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (StringUtils.isNullOrEmpty(custoTYpe)){
+            Toast.makeText(EditActivity.this, "请设置标签", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        CompanyAllModel allModel = new CompanyAllModel();
+        allModel.setSource_id(source_id);
+        allModel.setCompany_name(companyName);
+        allModel.setCountry_id(country_id);
+        allModel.setCrm_source_id(src_id);
+        // TODO: 2017/8/4 需要判断
+        allModel.setStar_cnt((int) ratingTagActivity.getRating());
+        allModel.setSaleteam_id(team_id);
+        allModel.setSaleman_id(partner_id);
+        allModel.setPartner_type(tvCustomerTag.getText().toString());
+        allModel.setSaleman_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getUser_id());
+        allModel.setSaleteam_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getTeam().getTeam_id());
+        allModel.setPartner_lv(partner_level);
+        allModel.setTag_list(type_id);
+        allModel.setCompany_id(company_id);
+        // TODO: 2017/8/4 需要判断
+        // TODO: 2017/8/4 需要判断
+        CompanyAllModel.LinkAndAddress link = new CompanyAllModel.LinkAndAddress();
+        List<CompanyAllModel.LinkAndAddress> listLink = new ArrayList<>();
+        link.setEmail(sortModel.getEmail_v2());
+        link.setType(sortModel.getLinkType());
+        link.setPhone(sortModel.getMobilePhone().get(0));
+        link.setName(sortModel.getName());
+        link.setStreet(sortModel.getPostal_address_v2().get(0));
+        listLink.add(link);
+        allModel.setMembers(listLink);
+
+        Intent intent = new Intent();
+        intent.putExtra("companyAll", allModel);
+        setResult(110, intent);
+        finish();
     }
 }

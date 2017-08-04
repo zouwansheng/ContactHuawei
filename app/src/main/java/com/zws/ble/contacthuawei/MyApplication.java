@@ -9,7 +9,7 @@ import com.facebook.stetho.Stetho;
  */
 
 public class MyApplication extends Application {
-
+    public static int userID ;
     @Override
     public void onCreate() {
         super.onCreate();

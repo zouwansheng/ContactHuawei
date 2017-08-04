@@ -22,6 +22,7 @@ import java.util.List;
 
 import bean.ChannelBean;
 import bean.CountryBean;
+import bean.LikeProductBean;
 import bean.OriginBean;
 import bean.SalemanBean;
 import bean.TeamBean;
@@ -56,6 +57,7 @@ public class QueryListActivity extends Activity {
     private QueryOriginAdapter originAdapter;
     private QueryTeamAdapter teamAdapter;
     private QuerySalemanAdapter salemanAdapter;
+    private QueryLikeAdapter likeAdapter;
     private List<CountryBean.ResultBean> countryResult;
     private List<CountryBean.ResultBean> allList;
     private List<ChannelBean.ResultBean> channelResult;
@@ -66,6 +68,8 @@ public class QueryListActivity extends Activity {
     private List<TeamBean.ResultBean> allListteam;
     private List<SalemanBean.ResultBean> salemanResult;
     private List<SalemanBean.ResultBean> allListSaleman;
+    private List<LikeProductBean.ResultBean> likeResult;
+    private List<LikeProductBean.ResultBean> allListLike;
     private ProgressDialog progressDialog;
     private String type;
 
@@ -110,8 +114,57 @@ public class QueryListActivity extends Activity {
                 titleList.setText("销售员");
                 salemanTYpe();
                 break;
+            case "likeProduct":
+                titleList.setText("感兴趣的产品");
+                likeType();
         }
 
+    }
+
+    //感兴趣的产品
+    private void likeType() {
+        final Call<LikeProductBean> country = inventroy.getProduct(new HashMap());
+        country.enqueue(new Callback<LikeProductBean>() {
+            @Override
+            public void onResponse(Call<LikeProductBean> call, Response<LikeProductBean> response) {
+                progressDialog.dismiss();
+                if (response.body() == null) return;
+                allListLike = new ArrayList<>();
+                likeResult = response.body().getResult();
+                allListLike = likeResult;
+                likeAdapter = new QueryLikeAdapter(R.layout.item_country, likeResult);
+                recyclerQuery.setAdapter(likeAdapter);
+
+                likeAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                        List<LikeProductBean.ResultBean> data = adapter.getData();
+                        Intent intent = new Intent();
+                        intent.putExtra("likeName", data.get(position).getName());
+                        intent.putExtra("series_id", data.get(position).getSeries_id());
+                        setResult(EditActivity.SELECT_LIKE_PRODUCT_RESULT, intent);
+                        finish();
+                    }
+                });
+                /*queryEditAll.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        salemanQ(newText);
+                        return false;
+                    }
+                });*/
+            }
+
+            @Override
+            public void onFailure(Call<LikeProductBean> call, Throwable t) {
+                progressDialog.dismiss();
+            }
+        });
     }
 
     //销售员
@@ -134,6 +187,7 @@ public class QueryListActivity extends Activity {
                         List<SalemanBean.ResultBean> data = adapter.getData();
                         Intent intent = new Intent();
                         intent.putExtra("salemanName", data.get(position).getName());
+                        intent.putExtra("partner_id", data.get(position).getPartner_id());
                         setResult(EditActivity.SELECT_SALEMAN_RESULT, intent);
                         finish();
                     }
@@ -183,6 +237,7 @@ public class QueryListActivity extends Activity {
                         List<TeamBean.ResultBean> data = adapter.getData();
                         Intent intent = new Intent();
                         intent.putExtra("teamName", data.get(position).getName());
+                        intent.putExtra("team_id", data.get(position).getTeam_id());
                         setResult(EditActivity.SELECT_TEAM_RESULT, intent);
                         finish();
                     }
@@ -228,6 +283,7 @@ public class QueryListActivity extends Activity {
                         List<OriginBean.ResultBean> data = adapter.getData();
                         Intent intent = new Intent();
                         intent.putExtra("originName", data.get(position).getName());
+                        intent.putExtra("src_id", data.get(position).getSrc_id());
                         setResult(EditActivity.SELECT_ORIGIN_RESULT, intent);
                         finish();
                     }
@@ -273,6 +329,7 @@ public class QueryListActivity extends Activity {
                         List<ChannelBean.ResultBean> data = adapter.getData();
                         Intent intent = new Intent();
                         intent.putExtra("channelName", data.get(position).getName());
+                        intent.putExtra("source_id", data.get(position).getSource_id());
                         setResult(EditActivity.SELECT_CHANNEL_RESULT, intent);
                         finish();
                     }
@@ -318,6 +375,7 @@ public class QueryListActivity extends Activity {
                         List<CountryBean.ResultBean> data = adapter.getData();
                         Intent intent = new Intent();
                         intent.putExtra("nameProduct", data.get(position).getName());
+                        intent.putExtra("country_id", data.get(position).getCountry_id());
                         setResult(EditActivity.SELECT_COUNTRY_RESULT, intent);
                         finish();
                     }

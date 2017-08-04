@@ -16,6 +16,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import contactui.SortModel;
+import dialog.LinkDialog;
 import util.StringUtils;
 
 /**
@@ -55,7 +56,11 @@ public class AddMessageActivity extends Activity {
         editName.setText(sortModel.getName());
         editAddress.setText(sortModel.getPostal_address_v2().get(0));
         editEmail.setText(sortModel.getEmail_v2());
-        editPhone.setText(sortModel.getPostal_address_v2().get(0));
+        editPhone.setText(sortModel.getMobilePhone().get(0));
+        editName.setSelection(editName.getText().length());
+        editAddress.setSelection(editAddress.getText().length());
+        editEmail.setSelection(editEmail.getText().length());
+        editPhone.setSelection(editPhone.getText().length());
     }
 
     @OnClick(R.id.cancel_text)
@@ -66,12 +71,37 @@ public class AddMessageActivity extends Activity {
     @OnClick(R.id.save_text)
     void save(View view){
         if (StringUtils.isNullOrEmpty(editName.getText().toString())){
-            Toast.makeText(AddMessageActivity.this, "请输入名字", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AddMessageActivity.this, "请输入名字！", Toast.LENGTH_SHORT).show();
             return;
         }
         if (StringUtils.isNullOrEmpty(editPhone.getText().toString())){
-            Toast.makeText(AddMessageActivity.this, "请输入手机号", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AddMessageActivity.this, "请输入手机号！", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (StringUtils.isNullOrEmpty(linkTypeTv.getText().toString())){
+            Toast.makeText(AddMessageActivity.this, "请选择联系人类型！", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        sortModel.setName(editName.getText().toString());
+        sortModel.getMobilePhone().set(0,editPhone.getText().toString());
+        sortModel.setLinkType(linkTypeTv.getText().toString());
+        sortModel.setEmail_v2(editEmail.getText().toString());
+        sortModel.getPostal_address_v2().set(0,editAddress.getText().toString());
+        Intent intent = new Intent();
+        intent.putExtra("backSormodel", sortModel);
+        setResult(999, intent);
+        finish();
+    }
+
+    @OnClick(R.id.link_type_tv)
+    void setLinkTypeTv(View view){
+        LinkDialog dialog = new LinkDialog(AddMessageActivity.this);
+        dialog.show();
+        dialog.sendNameLink(new LinkDialog.SetTypeLink() {
+            @Override
+            public void setLinkName(String name) {
+                linkTypeTv.setText(name);
+            }
+        });
     }
 }

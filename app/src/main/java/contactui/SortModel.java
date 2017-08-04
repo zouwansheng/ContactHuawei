@@ -17,6 +17,15 @@ public class SortModel implements Serializable{
 	public boolean isChecked;
 	public String website;
 	public int raw_contact_id;
+	private String linkType;
+
+	public String getLinkType() {
+		return linkType;
+	}
+
+	public void setLinkType(String linkType) {
+		this.linkType = linkType;
+	}
 
 	public int getRaw_contact_id() {
 		return raw_contact_id;

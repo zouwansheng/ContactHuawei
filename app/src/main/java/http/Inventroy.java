@@ -5,8 +5,10 @@ import java.util.HashMap;
 import bean.ChannelBean;
 import bean.ComponyQueryBean;
 import bean.CountryBean;
+import bean.LikeProductBean;
 import bean.OriginBean;
 import bean.SalemanBean;
+import bean.TagBean;
 import bean.TeamBean;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -47,4 +49,13 @@ public interface Inventroy {
 
     @POST("get_company_by_name")
     Call<ComponyQueryBean> getCompbyName(@Body HashMap hashMap);
+
+    @POST("add_partners")
+    Call<Object> addPaterner(@Body HashMap hashMap);
+
+    @POST("get_partner_tag_list")
+    Call<TagBean> getTaglist(@Body HashMap hashMap);
+
+    @POST("get_product_series")
+    Call<LikeProductBean> getProduct(@Body HashMap hashMap);
 }

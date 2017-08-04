@@ -1,14 +1,18 @@
-/*
 package login;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,6 +27,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.zws.ble.contacthuawei.MainActivity;
+import com.zws.ble.contacthuawei.MyApplication;
 import com.zws.ble.contacthuawei.R;
 
 import java.util.ArrayList;
@@ -30,29 +36,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import bean.LoginBean;
+import bean.LoginDatabase;
+import bean.LoginResponse;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import greendao.DaoSession;
+import contactui.MainContactActivity;
 import http.Inventroy;
+import http.LoginApi;
 import http.RetrofitClient;
+import http.RetrofitClientLogin;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+import util.SharePreferenceUtils;
 import util.StringUtils;
-
-
-*/
-/**
- * Created by Daniel.Xu on 2017/4/20.
- *//*
+import util.UserManager;
+import util.ViewUtils;
 
 
 public class LoginActivity extends Activity {
@@ -73,26 +80,36 @@ public class LoginActivity extends Activity {
     private int databaseSwitch = 0;
     private LoginApi loginApi;
     private ProgressDialog progressDialog;
-    private List<UserLogin> userLogins;
     private Inventroy inventoryApi;
     private ArrayList<String> userStrings;
     private Dialog alertDialog;
     private Retrofit retrofit;
+    private static final int READ_CONTACTS = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.WRITE_CONTACTS
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
-       // String addressLog = DebugDB.getAddressLog();
 
         progressDialog = new ProgressDialog(LoginActivity.this);
         progressDialog.setMessage("loading");
         checkOutoLogin();
-        initEmailAdapter();
-        initListener();
         httpUrl.setSelection(httpUrl.getText().length());
-        initDevice();
+        //获取联系人权限
+        int permission = ActivityCompat.checkSelfPermission(LoginActivity.this, Manifest.permission.READ_CONTACTS);
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    LoginActivity.this,
+                    PERMISSIONS_STORAGE,
+                    READ_CONTACTS
+            );
+        }
     }
 
     @OnClick(R.id.img_delete)
@@ -118,56 +135,19 @@ public class LoginActivity extends Activity {
         super.onStop();
     }
 
-    //取出用户名检索
-    private void initEmailAdapter() {
-        email.setThreshold(1);
-        userLogins = new UserLoginUtils().searchAll();
-        userStrings = new ArrayList<>();
-        if (userLogins != null && userLogins.size() > 0) {
-            for (UserLogin s : userLogins) {
-                userStrings.add(s.getUserName());
-            }
-            ArrayAdapter<String> stringArrayAdapter = new ArrayAdapter<>(LoginActivity.this, R.layout.auto_text_listview, userStrings);
-            email.setAdapter(stringArrayAdapter);
-        }
-    }
-
-
-    private void initListener() {
-
-        */
-/**
-         * 先获取position 再获取位置
-         *//*
-
-        email.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String item = (String) adapterView.getAdapter().getItem(i);
-                int index = userStrings.indexOf(item);
-                String password = userLogins.get(index).getPassword();
-                LoginActivity.this.password.setText(password);
-            }
-        });
-    }
-
-    */
-/**
-     * 检查是否可以自动登录
-     *//*
 
     private void checkOutoLogin() {
         int user_id = SharePreferenceUtils.getInt("user_id", -1000, LoginActivity.this);
-        if (StringUtils.isNullOrEmpty(RetrofitClient.Url)) {
+        if (StringUtils.isNullOrEmpty(RetrofitClientLogin.Url)) {
             httpUrl.setText("http://erp.robotime.com");
         } else {
-            httpUrl.setText(RetrofitClient.Url);
+            httpUrl.setText(RetrofitClientLogin.Url);
         }
         if (user_id != -1000) {
             String url = SharePreferenceUtils.getString("url", "null", LoginActivity.this);
             LoginActivity.this.httpUrl.setText(url);
-            RetrofitClient.Url = url;
-            loginApi = RetrofitClient.getInstance(LoginActivity.this).create(LoginApi.class);
+            RetrofitClientLogin.Url = url;
+            loginApi = RetrofitClientLogin.getInstance(LoginActivity.this).create(LoginApi.class);
             String database = SharePreferenceUtils.getString("database", "null", LoginActivity.this);
             LoginActivity.this.database.setText(database);
             String email = SharePreferenceUtils.getString("email", "error", LoginActivity.this);
@@ -181,7 +161,7 @@ public class LoginActivity extends Activity {
     @OnClick(R.id.database)
     void setDatabase(View view) {
         if (StringUtils.isNullOrEmpty(httpUrl.getText().toString())) {
-            ToastUtils.showCommonToast(LoginActivity.this, "请输入url地址");
+            Toast.makeText(LoginActivity.this, "请输入url地址", Toast.LENGTH_SHORT).show();
             return;
         }
         String URL;
@@ -191,8 +171,8 @@ public class LoginActivity extends Activity {
         } else {
             URL = httpUrl.getText().toString();
         }
-        RetrofitClient.Url = URL;
-        loginApi = RetrofitClient.getInstance(LoginActivity.this).create(LoginApi.class);
+        RetrofitClientLogin.Url = URL;
+        loginApi = RetrofitClientLogin.getInstance(LoginActivity.this).create(LoginApi.class);
         final AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
         builder.setTitle("选择数据库");
         builder.setIcon(android.R.drawable.ic_menu_more);
@@ -214,7 +194,6 @@ public class LoginActivity extends Activity {
 
                             @Override
                             public void onError(Throwable e) {
-                                MyLog.e(TAG, e.toString());
                                 if (progressDialog != null && progressDialog.isShowing()) {
                                     progressDialog.dismiss();
                                 }
@@ -254,33 +233,33 @@ public class LoginActivity extends Activity {
     void toLogin(View view) {
         String chooseDB = database.getText().toString();
         if (chooseDB.equals("选择数据库")){
-            ToastUtils.showCommonToast(LoginActivity.this, "请选择数据库");
+            Toast.makeText(LoginActivity.this, "请选择数据库", Toast.LENGTH_SHORT).show();
             return;
         }
         final String emailString = this.email.getText().toString();
         if (StringUtils.isNullOrEmpty(emailString)){
-            ToastUtils.showCommonToast(LoginActivity.this, "请输入邮箱");
+            Toast.makeText(LoginActivity.this, "请输入邮箱", Toast.LENGTH_SHORT).show();
             return;
         }
         final String passwordString = password.getText().toString();
         if (StringUtils.isNullOrEmpty(passwordString)){
-            ToastUtils.showCommonToast(LoginActivity.this, "请输入密码");
+            Toast.makeText(LoginActivity.this, "请输入密码", Toast.LENGTH_SHORT).show();
             return;
         }
         final String url = httpUrl.getText().toString();
         if (StringUtils.isNullOrEmpty(url)){
-            ToastUtils.showCommonToast(LoginActivity.this, "请输入url地址");
+            Toast.makeText(LoginActivity.this, "请输入url地址", Toast.LENGTH_SHORT).show();
             return;
         }
         progressDialog.show();
         Call<LoginResponse> stringCall = loginApi.toLogin(new LoginBean(emailString, passwordString, chooseDB));
-        stringCall.enqueue(new MyCallback<LoginResponse>() {
+        stringCall.enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 if (response.body() == null || response.body().getResult() == null)
                     return;
                 if (response.body().getError() != null) {
-                    ToastUtils.showCommonToast(LoginActivity.this, response.body().getError().getMessage());
+                    Toast.makeText(LoginActivity.this, response.body().getError().getMessage(), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (response.body().getResult().getRes_code() == 1) {
@@ -294,16 +273,6 @@ public class LoginActivity extends Activity {
                     SharePreferenceUtils.putInt("partner_id", response.body().getResult().getRes_data().getPartner_id(), LoginActivity.this);
                     SharePreferenceUtils.putString("user_ava", response.body().getResult().getRes_data().getUser_ava(), LoginActivity.this);
                     final String name = response.body().getResult().getRes_data().getName();
-                    new UserLoginUtils().insertUser(new UserLogin(emailString, passwordString));
-                    List<LoginResponse.ResultBean.ResDataBean.GroupsBean> groups = response.body().getResult().getRes_data().getGroups();
-                    Observable.from(groups)
-                            .subscribe(new Action1<LoginResponse.ResultBean.ResDataBean.GroupsBean>() {
-                                @Override
-                                public void call(LoginResponse.ResultBean.ResDataBean.GroupsBean groupsBean) {
-                                    daoSession.getLoginResponseBeanDao()
-                                            .insertOrReplace(new LoginResponseBean(user_id, name, groupsBean.getName(), groupsBean.getId()));
-                                }
-                            });
                     toMainActivity();
                 } else {
                     if (progressDialog.isShowing()) {
@@ -315,7 +284,6 @@ public class LoginActivity extends Activity {
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                super.onFailure(call, t);
                 Toast.makeText(LoginActivity.this, "登录失败", Toast.LENGTH_SHORT).show();
             }
         });
@@ -325,184 +293,13 @@ public class LoginActivity extends Activity {
         if (progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
-        finish();
-        IntentFactory.start_MainActivity(LoginActivity.this);
-    }
-
-    @OnClick(R.id.tv_nfc_login)
-    void nfcLogin(View view) {
-        new Thread(new Runnable() {
-            public TextView textTrue;
-            public TextView textCancel;
-            public ImageView imageHeader;
-            public TextView textNfcNum;
-            public TextView textviewName;
-
-            @Override
-            public void run() {
-                processingLock();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                        View inflate = LayoutInflater.from(LoginActivity.this).inflate(R.layout.dialog_nfc_addwork, null);
-                        textviewName = (TextView) inflate.findViewById(R.id.nfc_work_name);
-                        textNfcNum = (TextView) inflate.findViewById(R.id.tv_nfc_num);
-                        textviewName.setText("请将卡靠近NFC感应区");
-                        textviewName.setTextColor(Color.RED);
-                        imageHeader = (ImageView) inflate.findViewById(R.id.image_nfc_addwork);
-                        textCancel = (TextView) inflate.findViewById(R.id.tv_cancel_addnfc);
-                        textTrue = (TextView) inflate.findViewById(R.id.tv_true_addnfc);
-                        builder.setView(inflate);
-                        alertDialog = builder.create();
-                        alertDialog.show();
-                        textCancel.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                alertDialog.dismiss();
-                            }
-                        });
-                        textTrue.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                alertDialog.dismiss();
-                            }
-                        });
-                    }
-                });
-                try {
-                    final RFResult qPResult = rfCardModule.powerOn(null, 10, TimeUnit.SECONDS);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (qPResult.getCardSerialNo() == null) {
-                                ToastUtils.showCommonToast(LoginActivity.this, "非接卡序列号null: " + "" + Const.MessageTag.DATA);
-                            } else {
-                                String NFC_Number = ISOUtils.hexString(qPResult.getCardSerialNo());
-                                textNfcNum.setText(NFC_Number);
-                                progressDialog.show();
-                                String host = httpUrl.getText().toString();
-                                if (StringUtils.isNullOrEmpty(host)){
-                                    return;
-                                }else if (!host.contains("http://")){
-                                    host = "http://"+host;
-                                }
-                                retrofit = new Retrofit.Builder()
-                                        .client(new OKHttpFactory(LoginActivity.this).getOkHttpClient())
-                                        .baseUrl(host + "/linkloving_user_auth/")
-                                        .addConverterFactory(GsonConverterFactory.create())
-                                        .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                                        .build();
-                                HashMap<Object, Object> hashMap = new HashMap<>();
-                                hashMap.put("card_num", ISOUtils.hexString(qPResult.getCardSerialNo()));
-                                Call<NFcLoginBean> byCardnum = retrofit.create(InventoryApi.class).getByCardnum(hashMap);
-                                byCardnum.enqueue(new MyCallback<NFcLoginBean>() {
-                                    @Override
-                                    public void onResponse(Call<NFcLoginBean> call, final Response<NFcLoginBean> response) {
-                                        progressDialog.dismiss();
-                                        if (response.body() == null) return;
-                                        if (response.body().getResult() == null) return;
-                                        if (response.body().getResult().getRes_data() != null && response.body().getResult().getRes_code() == 1) {
-                                            textviewName.setText(response.body().getResult().getRes_data().getName());
-                                            textviewName.setTextColor(Color.BLACK);
-                                            textTrue.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View v) {
-                                                    rfCardModule.powerOff(2);
-                                                    alertDialog.dismiss();
-                                                    email.setText(response.body().getResult().getRes_data().getWork_email());
-
-                                                }
-                                            });
-                                        }else if (response.body().getResult().getRes_code() == -1 && response.body().getResult().getRes_data()!=null){
-                                            rfCardModule.powerOff(2);
-                                            alertDialog.dismiss();
-                                            ToastUtils.showCommonToast(LoginActivity.this, response.body().getResult().getRes_data().getError());
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onFailure(Call<NFcLoginBean> call, Throwable t) {
-                                        progressDialog.dismiss();
-                                        MyLog.e("Login", t.toString());
-                                    }
-                                });
-                            }
-                            processingUnLock();
-                        }
-                    });
-
-                } catch (final Exception e) {
-                    e.fillInStackTrace();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastUtils.showCommonToast(LoginActivity.this, "非接卡序列号null: " + "" + Const.MessageTag.DATA);
-                        }
-                    });
-                    processingUnLock();
-                }
-            }
-        }).start();
-    }
-
-    */
-/**
-     * 连接设备打印机
-     *//*
-
-    private void initDevice() {
-        deviceManager = ConnUtils.getDeviceManager();
-        try {
-            deviceManager.init(LoginActivity.this, K21_DRIVER_NAME, new NSConnV100ConnParams(), new DeviceEventListener<ConnectionCloseEvent>() {
-                @Override
-                public void onEvent(ConnectionCloseEvent connectionCloseEvent, Handler handler) {
-                    if (connectionCloseEvent.isSuccess()) {
-                        ToastUtils.showCommonToast(LoginActivity.this, "设备被客户主动断开！");
-                    }
-                    if (connectionCloseEvent.isFailed()) {
-                        ToastUtils.showCommonToast(LoginActivity.this, "设备链接异常断开！");
-                    }
-                }
-
-                @Override
-                public Handler getUIHandler() {
-                    return null;
-                }
-            });
-            deviceManager.connect();
-            MyLog.e("ProductingActivity", "连接成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            ToastUtils.showCommonToast(LoginActivity.this, "链接异常,请检查设备或重新连接.." + e);
+        String model = Build.BRAND;
+        if (!model.equals("HUAWEI")){
+            Toast.makeText(LoginActivity.this, "此APP功能仅限华为手机使用", Toast.LENGTH_LONG).show();
+            return;
         }
-        rfCardModule = (RFCardModule) deviceManager.getDevice().getStandardModule(ModuleType.COMMON_RFCARDREADER);
-    }
-
-    public void processingLock() {
-        runOnUiThread(new Runnable() {
-
-            @Override
-            public void run() {
-                SharedPreferences setting = getSharedPreferences("setting", 0);
-                SharedPreferences.Editor editor = setting.edit();
-                editor.putBoolean("PBOC_LOCK", true);
-                editor.commit();
-            }
-        });
-
-    }
-
-    public void processingUnLock() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                SharedPreferences setting = getSharedPreferences("setting", 0);
-                SharedPreferences.Editor editor = setting.edit();
-                editor.putBoolean("PBOC_LOCK", false);
-                editor.commit();
-            }
-        });
+        finish();
+        Intent intent = new Intent(LoginActivity.this, MainContactActivity.class);
+        startActivity(intent);
     }
 }
-*/

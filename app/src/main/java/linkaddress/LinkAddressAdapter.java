@@ -23,7 +23,7 @@ public class LinkAddressAdapter extends BaseQuickAdapter<SortModel, BaseViewHold
     }
 
     @Override
-    protected void convert(BaseViewHolder helper, final SortModel item) {
+    protected void convert(final BaseViewHolder helper, final SortModel item) {
             helper.setText(R.id.link_name, item.getName())
                     .setText(R.id.link_address_tv, "地址："+item.getPostal_address_v2().get(0))
                     .setText(R.id.link_email_tv, item.getEmail_v2())
@@ -31,20 +31,20 @@ public class LinkAddressAdapter extends BaseQuickAdapter<SortModel, BaseViewHold
             helper.getView(R.id.image_edit).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    settingOnClickListener.editOnclick(item);
+                    settingOnClickListener.editOnclick(item, helper.getPosition());
                 }
             });
         helper.getView(R.id.img_delete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                settingOnClickListener.deleteLink(item);
+                settingOnClickListener.deleteLink(item, helper.getPosition());
             }
         });
     }
 
     public interface  SettingOnClickListener{
-        void editOnclick(SortModel sortModel);
-        void deleteLink(SortModel sortModel);
+        void editOnclick(SortModel sortModel, int position);
+        void deleteLink(SortModel sortModel, int position);
     }
 
     private SettingOnClickListener settingOnClickListener;
