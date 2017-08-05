@@ -78,8 +78,8 @@ public class CompanyDialog extends Dialog {
         wl.width = (int) (display.getWidth() * 0.8);
         wl.height = (int) (display.getWidth() * 0.5);
         window.setAttributes(wl);
-        setCanceledOnTouchOutside(true);
-        setCancelable(true);
+       // setCanceledOnTouchOutside(true);
+        //setCancelable(true);
 
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override

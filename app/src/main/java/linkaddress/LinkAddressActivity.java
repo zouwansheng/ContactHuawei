@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import bean.CompanyAllModel;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -34,8 +35,7 @@ public class LinkAddressActivity extends Activity {
     RecyclerView recyclerLinkaddress;
     @InjectView(R.id.image_left)
     ImageView imageLeft;
-    private SortModel sortModel;
-    private List<SortModel> sortModelList = new ArrayList<>();
+    private List<CompanyAllModel.LinkAndAddress> sortModelList = new ArrayList<>();
     private LinearLayoutManager linearLayoutManager;
     private LinkAddressAdapter adapter;
     private int positionId;
@@ -53,8 +53,8 @@ public class LinkAddressActivity extends Activity {
                 DividerItemDecoration.VERTICAL));
 
         Intent intent = getIntent();
-        sortModel = (SortModel) intent.getSerializableExtra("sortModel");
-        sortModelList.add(sortModel);
+        sortModelList = (List<CompanyAllModel.LinkAndAddress>) intent.getSerializableExtra("sortModel");
+        Log.e("zws", "咋回事 = "+sortModelList.toString());
         initView();
     }
 
@@ -63,7 +63,7 @@ public class LinkAddressActivity extends Activity {
         recyclerLinkaddress.setAdapter(adapter);
         adapter.setSettingOnClickListener(new LinkAddressAdapter.SettingOnClickListener() {
             @Override
-            public void editOnclick(SortModel sortModel, int position) {
+            public void editOnclick(CompanyAllModel.LinkAndAddress sortModel, int position) {
                 Intent intent = new Intent(LinkAddressActivity.this, AddMessageActivity.class);
                 intent.putExtra("sortModel", sortModel);
                 Log.e("zws", "position = "+position);
@@ -72,7 +72,7 @@ public class LinkAddressActivity extends Activity {
             }
 
             @Override
-            public void deleteLink(SortModel sortModel, int position) {
+            public void deleteLink(CompanyAllModel.LinkAndAddress sortModel, int position) {
 
             }
         });
@@ -81,7 +81,7 @@ public class LinkAddressActivity extends Activity {
     @OnClick(R.id.image_left)
     void closeThis(View view){
         Intent intent = new Intent();
-        intent.putExtra("linkData", sortModel);
+        intent.putExtra("linkData", (Serializable) sortModelList);
         setResult(EditActivity.LINK_AND_ADDRESS_RESULT, intent);
         finish();
     }
@@ -91,9 +91,8 @@ public class LinkAddressActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == 999){
             if (requestCode == 1000){
-                SortModel backSormodel = (SortModel) data.getSerializableExtra("backSormodel");
-                Log.e("zws", "type = "+backSormodel.getLinkType());
-                sortModel = backSormodel;
+                CompanyAllModel.LinkAndAddress backSormodel = (CompanyAllModel.LinkAndAddress) data.getSerializableExtra("backSormodel");
+                Log.e("zws", "type = "+backSormodel.getType());
                 sortModelList.set(positionId, backSormodel);
                 adapter.notifyDataSetChanged();
             }

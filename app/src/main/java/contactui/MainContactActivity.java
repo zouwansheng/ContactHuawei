@@ -178,7 +178,7 @@ public class MainContactActivity extends Activity {
                 }else if ("vnd.android.cursor.item/im".equals(mime)){
                     stringBuilder.append("im = "+data1);
                 }
-                Log.e("zws", "个人信息 = "+stringBuilder);
+              //  Log.e("zws", "个人信息 = "+stringBuilder);
             }
             dataCursor.close();
             listName.add(name);
@@ -360,6 +360,7 @@ public class MainContactActivity extends Activity {
         intent.putExtra("data", (Serializable) adapter.getSelectList());
         intent.putExtra("groupId", groupNeedId);
         startActivity(intent);
+        registerBroadcastReceiver();
     }
     /**
      * ΪListView
@@ -426,10 +427,6 @@ public class MainContactActivity extends Activity {
             String action = intent.getAction();
             if (TIME_CHANGED_ACTION.equals(action)){
                 getContactMessage();
-                /*Intent timeIntent = new Intent();
-                timeIntent.setAction(MainContactActivity.TIME_CHANGED_ACTION);
-                //发送广播，通知UI层时间改变了
-                sendBroadcast(timeIntent);*/
             }
         }
     }

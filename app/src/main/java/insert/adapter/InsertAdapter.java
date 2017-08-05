@@ -10,32 +10,36 @@ import com.zws.ble.contacthuawei.R;
 
 import java.util.List;
 
+import bean.CompanyAllModel;
 import contactui.SortModel;
 
 /**
  * Created by zws on 2017/8/2.
  */
 
-public class InsertAdapter extends BaseQuickAdapter<SortModel, BaseViewHolder>{
-    public InsertAdapter(@LayoutRes int layoutResId, @Nullable List<SortModel> data) {
+public class InsertAdapter extends BaseQuickAdapter<CompanyAllModel, BaseViewHolder>{
+    public InsertAdapter(@LayoutRes int layoutResId, @Nullable List<CompanyAllModel> data) {
         super(layoutResId, data);
     }
 
     @Override
-    protected void convert(BaseViewHolder helper, final SortModel item) {
-        helper.setText(R.id.title_name, item.getName().substring(0,1))
-        .setText(R.id.name_product, item.getOrganization())
-        .setText(R.id.sales_people, item.getName()+" "+item.getMobilePhone().get(0));
+    protected void convert(final BaseViewHolder helper, final CompanyAllModel item) {
+        if (item.getCompany_name().length()>1){
+            helper.setText(R.id.title_name, item.getCompany_name().substring(0,2));
+        }
+        helper.setText(R.id.name_product, item.getCompany_name())
+        .setText(R.id.sales_people, item.getMembers().get(0).getName()+" "+item.getMembers().get(0).getPhone())
+        .setText(R.id.num_company_link, "本客户下联系人数目："+item.getMembers().size());
         helper.getView(R.id.setting_image).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                settingOnClickListener.editOnclick(item);
+                settingOnClickListener.editOnclick(item, helper.getPosition());
             }
         });
     }
 
     public interface  SettingOnClickListener{
-        void editOnclick(SortModel sortModel);
+        void editOnclick(CompanyAllModel sortModel, int position);
     }
 
     private SettingOnClickListener settingOnClickListener;

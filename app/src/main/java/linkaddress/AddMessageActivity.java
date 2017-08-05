@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.zws.ble.contacthuawei.R;
 
+import bean.CompanyAllModel;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -39,7 +40,7 @@ public class AddMessageActivity extends Activity {
     @InjectView(R.id.edit_address)
     EditText editAddress;
 
-    private SortModel sortModel;
+    private CompanyAllModel.LinkAndAddress sortModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,15 +49,15 @@ public class AddMessageActivity extends Activity {
         ButterKnife.inject(this);
 
         Intent intent = getIntent();
-        sortModel = (SortModel) intent.getSerializableExtra("sortModel");
+        sortModel = (CompanyAllModel.LinkAndAddress) intent.getSerializableExtra("sortModel");
         initView();
     }
 
     private void initView() {
         editName.setText(sortModel.getName());
-        editAddress.setText(sortModel.getPostal_address_v2().get(0));
-        editEmail.setText(sortModel.getEmail_v2());
-        editPhone.setText(sortModel.getMobilePhone().get(0));
+        editAddress.setText(sortModel.getStreet());
+        editEmail.setText(sortModel.getEmail());
+        editPhone.setText(sortModel.getPhone());
         editName.setSelection(editName.getText().length());
         editAddress.setSelection(editAddress.getText().length());
         editEmail.setSelection(editEmail.getText().length());
@@ -83,10 +84,10 @@ public class AddMessageActivity extends Activity {
             return;
         }
         sortModel.setName(editName.getText().toString());
-        sortModel.getMobilePhone().set(0,editPhone.getText().toString());
-        sortModel.setLinkType(linkTypeTv.getText().toString());
-        sortModel.setEmail_v2(editEmail.getText().toString());
-        sortModel.getPostal_address_v2().set(0,editAddress.getText().toString());
+        sortModel.setPhone(editPhone.getText().toString());
+        sortModel.setType(linkTypeTv.getText().toString());
+        sortModel.setEmail(editEmail.getText().toString());
+        sortModel.setStreet(editAddress.getText().toString());
         Intent intent = new Intent();
         intent.putExtra("backSormodel", sortModel);
         setResult(999, intent);

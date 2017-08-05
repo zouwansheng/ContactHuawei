@@ -10,6 +10,7 @@ import com.zws.ble.contacthuawei.R;
 
 import java.util.List;
 
+import bean.CompanyAllModel;
 import contactui.SortModel;
 import insert.adapter.InsertAdapter;
 
@@ -17,17 +18,17 @@ import insert.adapter.InsertAdapter;
  * Created by zws on 2017/8/3.
  */
 
-public class LinkAddressAdapter extends BaseQuickAdapter<SortModel, BaseViewHolder>{
-    public LinkAddressAdapter(@LayoutRes int layoutResId, @Nullable List<SortModel> data) {
+public class LinkAddressAdapter extends BaseQuickAdapter<CompanyAllModel.LinkAndAddress, BaseViewHolder>{
+    public LinkAddressAdapter(@LayoutRes int layoutResId, @Nullable List<CompanyAllModel.LinkAndAddress> data) {
         super(layoutResId, data);
     }
 
     @Override
-    protected void convert(final BaseViewHolder helper, final SortModel item) {
+    protected void convert(final BaseViewHolder helper, final CompanyAllModel.LinkAndAddress item) {
             helper.setText(R.id.link_name, item.getName())
-                    .setText(R.id.link_address_tv, "地址："+item.getPostal_address_v2().get(0))
-                    .setText(R.id.link_email_tv, item.getEmail_v2())
-                    .setText(R.id.link_phone_tv, item.getMobilePhone().get(0));
+                    .setText(R.id.link_address_tv, "地址："+item.getStreet())
+                    .setText(R.id.link_email_tv, item.getEmail())
+                    .setText(R.id.link_phone_tv, item.getPhone());
             helper.getView(R.id.image_edit).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -43,8 +44,8 @@ public class LinkAddressAdapter extends BaseQuickAdapter<SortModel, BaseViewHold
     }
 
     public interface  SettingOnClickListener{
-        void editOnclick(SortModel sortModel, int position);
-        void deleteLink(SortModel sortModel, int position);
+        void editOnclick(CompanyAllModel.LinkAndAddress sortModel, int position);
+        void deleteLink(CompanyAllModel.LinkAndAddress sortModel, int position);
     }
 
     private SettingOnClickListener settingOnClickListener;

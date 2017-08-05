@@ -3,6 +3,7 @@ package http;
 import java.util.HashMap;
 
 import bean.ChannelBean;
+import bean.CommitAllMessageBean;
 import bean.ComponyQueryBean;
 import bean.CountryBean;
 import bean.LikeProductBean;
@@ -51,7 +52,7 @@ public interface Inventroy {
     Call<ComponyQueryBean> getCompbyName(@Body HashMap hashMap);
 
     @POST("add_partners")
-    Call<Object> addPaterner(@Body HashMap hashMap);
+    Call<CommitAllMessageBean> addPaterner(@Body HashMap hashMap);
 
     @POST("get_partner_tag_list")
     Call<TagBean> getTaglist(@Body HashMap hashMap);

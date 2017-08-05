@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.zws.ble.contacthuawei.R;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,7 +106,7 @@ public class EditActivity extends Activity {
     @InjectView(R.id.rating_tag_activity)
     RatingBar ratingTagActivity;
 
-    private SortModel sortModel;
+    private CompanyAllModel sortModel;
     private Inventroy inventroy;
     private ProgressDialog progressDialog;
     private int groupId;
@@ -118,6 +119,7 @@ public class EditActivity extends Activity {
     private int partner_level;//等级
     private int type_id;//客户供应商id
     private int company_id;//公司id
+    private List<CompanyAllModel.LinkAndAddress> linkAndAddresses = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,11 +127,13 @@ public class EditActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_edit);
         ButterKnife.inject(this);
-        RetrofitClient.Url = "http://192.168.2.4:8069";
+        //RetrofitClient.Url = "http://192.168.2.4:8069";
 
         inventroy = RetrofitClient.getInstance(EditActivity.this).create(Inventroy.class);
         Intent intent = getIntent();
-        sortModel = (SortModel) intent.getSerializableExtra("sortModel");
+        sortModel = (CompanyAllModel) intent.getSerializableExtra("sortModel");
+        linkAndAddresses = sortModel.getMembers();
+        Log.e("zws", " 联系人地址 = "+linkAndAddresses.toString());
         groupId = intent.getIntExtra("groupId", 1);
         progressDialog = new ProgressDialog(EditActivity.this);
         progressDialog.setMessage("加载中...");
@@ -137,10 +141,11 @@ public class EditActivity extends Activity {
     }
 
     private void initView() {
-        if (!StringUtils.isNullOrEmpty(sortModel.getOrganization())) {
-            productName.setText(sortModel.getOrganization());
+        if (!StringUtils.isNullOrEmpty(sortModel.getCompany_name())) {
+            productName.setText(sortModel.getCompany_name());
             productName.setSelection(productName.getText().length());
         }
+        linkAddress.setText(linkAndAddresses.size()+"");
         LoginResponse userInfoBean = UserManager.getSingleton().getUserInfoBean();
         if (userInfoBean!=null){
             saleTeam.setText(userInfoBean.getResult().getRes_data().getTeam().getTeam_name());
@@ -153,6 +158,7 @@ public class EditActivity extends Activity {
                 return true;
             }
         });
+        btnQuery(new View(EditActivity.this));
     }
 
     //取消
@@ -220,11 +226,11 @@ public class EditActivity extends Activity {
     @OnClick(R.id.link_address)
     void setLinkAddress(View view){
         Intent intent = new Intent(EditActivity.this, LinkAddressActivity.class);
-        intent.putExtra("sortModel", sortModel);
+        intent.putExtra("sortModel", (Serializable) linkAndAddresses);
         startActivityForResult(intent, LINK_AND_ADDRESS);
     }
 
-    //删除
+    /*//删除
     @OnClick(R.id.delete_this)
     void setDeleteThis(View view){
         new AlertDialog.Builder(EditActivity.this).setMessage("确定删除客户？")
@@ -246,7 +252,7 @@ public class EditActivity extends Activity {
 
             }
         }).show();
-    }
+    }*/
     /**
      * 删除联系人
      * */
@@ -357,7 +363,8 @@ public class EditActivity extends Activity {
             }
         }else if (resultCode == LINK_AND_ADDRESS_RESULT){
             if (requestCode == LINK_AND_ADDRESS){
-                sortModel = (SortModel) data.getSerializableExtra("linkData");
+                linkAndAddresses = (List<CompanyAllModel.LinkAndAddress>) data.getSerializableExtra("linkData");
+                sortModel.setMembers(linkAndAddresses);
             }
         }else if (requestCode == SELECT_LIKE_PRODUCT_RESULT){
             if (requestCode == SELECT_LIKE_PRODUCT){
@@ -409,15 +416,7 @@ public class EditActivity extends Activity {
         allModel.setCompany_id(company_id);
         // TODO: 2017/8/4 需要判断
         // TODO: 2017/8/4 需要判断
-        CompanyAllModel.LinkAndAddress link = new CompanyAllModel.LinkAndAddress();
-        List<CompanyAllModel.LinkAndAddress> listLink = new ArrayList<>();
-        link.setEmail(sortModel.getEmail_v2());
-        link.setType(sortModel.getLinkType());
-        link.setPhone(sortModel.getMobilePhone().get(0));
-        link.setName(sortModel.getName());
-        link.setStreet(sortModel.getPostal_address_v2().get(0));
-        listLink.add(link);
-        allModel.setMembers(listLink);
+        allModel.setMembers(linkAndAddresses);
 
         Intent intent = new Intent();
         intent.putExtra("companyAll", allModel);
