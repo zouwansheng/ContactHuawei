@@ -108,7 +108,7 @@ public class SortModel implements Serializable{
 	 * */
 	@Override
 	public String toString() {
-		return "name = "+name+" mobilePhone = "+mobilePhone.get(0)+" organization = "+organization
-				+" email_v2 = "+email_v2+" postal_address_v2 = "+postal_address_v2+" website = "+website;
+		return "name = "+name+" organization = "+organization
+				+" email_v2 = "+email_v2+" website = "+website;
 	}
 }

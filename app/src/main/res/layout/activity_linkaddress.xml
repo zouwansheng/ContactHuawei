@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="45dp"
             android:orientation="horizontal">
@@ -11,16 +11,16 @@
                   android:layout_width="wrap_content"
                   android:layout_height="25dp"
                   android:src="@drawable/back_no_left"
-                  android:layout_gravity="center_vertical"
+                  android:layout_centerVertical="true"
                   android:layout_marginLeft="15dp"/>
                 <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="联系人@地址"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="联系人和地址"
                     android:textSize="16sp"
                     android:textColor="@color/black"
-                    android:gravity="center"/>
-        </LinearLayout>
+                    android:layout_centerInParent="true"/>
+        </RelativeLayout>
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_linkaddress"
             android:layout_width="match_parent"

@@ -44,7 +44,8 @@ import butterknife.OnClick;
 import insert.AlreadyInsertActivity;
 
 public class MainContactActivity extends Activity {
-    public static String TIME_CHANGED_ACTION = "com.zws.action.TIME_CHANGED_ACTION";
+    private static final int UPDATE_CONTACT = 999;
+    public static final int UPDATE_CONTACT_RESULT = 998;
     @InjectView(R.id.image)
     ImageView image;
     @InjectView(R.id.check_activity)
@@ -78,7 +79,7 @@ public class MainContactActivity extends Activity {
             Manifest.permission.WRITE_CONTACTS
     };
     private String[] nameContact;
-    private  int num_selected = 0;
+    private  int num_elected = 0;
     private List<String> listName;
     private List<Map<String, SortModel>> contactMessage;
     private int groupNeedId;//名片夹的id
@@ -223,7 +224,6 @@ public class MainContactActivity extends Activity {
                             getListAll(groupId);
                         }
                        // String title = cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE_RES));
-                       // Log.e("zws", "groupId="+groupId+"groupName="+groupName+"title = "+title);
                     }
                 }finally {
                     if (cursor!=null){
@@ -239,18 +239,20 @@ public class MainContactActivity extends Activity {
                     @Override
                     public void run() {
                         adapter = new SortAdapter(MainContactActivity.this, SourceDateList);
+                        sortListView.setAdapter(adapter);
                         adapter.setCheckboxClick(new SortAdapter.CheckboxClickListen() {
                             @Override
                             public void onItemCheck(boolean checkBox) {
                                 if (checkBox){
-                                    num_selected++;
+                                    if (num_elected>0)
+                                    num_elected = num_elected -1;
                                 }else {
-                                    num_selected--;
+                                    if (num_elected<SourceDateList.size())
+                                    num_elected = num_elected +1;
                                 }
-                                numSelected.setText(num_selected+"");
+                                numSelected.setText(num_elected+"");
                             }
                         });
-                        sortListView.setAdapter(adapter);
                     }
                 });
             }
@@ -258,7 +260,6 @@ public class MainContactActivity extends Activity {
 
         mClearEditText = (ClearEditText) findViewById(R.id.filter_edit);
         sortListView.setOnItemClickListener(new OnItemClickListener() {
-
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
@@ -268,14 +269,14 @@ public class MainContactActivity extends Activity {
                 List<SortModel> list = new ArrayList<>();
                 list.add(sortModel);
                 if (!checked){
-                    num_selected++;
+                    num_elected++;
                     adapter.setSelectList(list,1);
                 }else {
-                    num_selected--;
+                    num_elected--;
                     adapter.setSelectList(list,2);
                 }
                 adapter.notifyDataSetChanged();
-                numSelected.setText(num_selected+"");
+                numSelected.setText(num_elected+"");
               //  Toast.makeText(getApplication(), ((SortModel) adapter.getItem(position)).getName(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -287,10 +288,11 @@ public class MainContactActivity extends Activity {
                 if (ischeck){
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setChecked(true);
+                        list_beiyong.add(list.get(i));
                     }
-                    adapter.setSelectList(list, 3);
+                    adapter.setSelectList(list_beiyong, 3);
                     adapter.updateListView(list);
-                    num_selected = list.size();
+                    num_elected = list.size();
                 }else {
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setChecked(false);
@@ -298,9 +300,9 @@ public class MainContactActivity extends Activity {
                     }
                     adapter.setSelectList(list, 4);
                     adapter.updateListView(list_beiyong);
-                    num_selected = 0;
+                    num_elected = 0;
                 }
-                numSelected.setText(num_selected+"");
+                numSelected.setText(num_elected+"");
             }
         });
         mClearEditText.addTextChangedListener(new TextWatcher() {
@@ -355,12 +357,15 @@ public class MainContactActivity extends Activity {
 
     @OnClick(R.id.insert_activity)
     void insertIntent(View view){
+        if (adapter.getSelectList().size() == 0){
+            Toast.makeText(MainContactActivity.this, "请选择需要导入的联系人", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Log.e("zws", adapter.getSelectList().toString());
         Intent intent = new Intent(MainContactActivity.this, AlreadyInsertActivity.class);
         intent.putExtra("data", (Serializable) adapter.getSelectList());
         intent.putExtra("groupId", groupNeedId);
-        startActivity(intent);
-        registerBroadcastReceiver();
+        startActivityForResult(intent,UPDATE_CONTACT);
     }
     /**
      * ΪListView
@@ -412,20 +417,15 @@ public class MainContactActivity extends Activity {
         adapter.updateListView(filterDateList);
     }
 
-    /**
-     * 注册广播
-     */
-    private void registerBroadcastReceiver(){
-        ContactListReceive receiver = new ContactListReceive();
-        IntentFilter filter = new IntentFilter(TIME_CHANGED_ACTION);
-        registerReceiver(receiver, filter);
-    }
-    class ContactListReceive extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (TIME_CHANGED_ACTION.equals(action)){
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == UPDATE_CONTACT_RESULT){
+            if (requestCode == UPDATE_CONTACT){
+                if (adapter!=null){
+                    adapter.getList().clear();
+                    adapter.notifyDataSetChanged();
+                }
                 getContactMessage();
             }
         }

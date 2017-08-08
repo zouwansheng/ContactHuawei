@@ -3,7 +3,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:orientation="horizontal">
@@ -12,16 +12,16 @@
             android:layout_width="wrap_content"
             android:layout_height="20dp"
             android:src="@drawable/back_no_left"
-            android:layout_gravity="center_vertical"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="15dp"/>
         <TextView
             android:id="@+id/title_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="国家"
-            android:gravity="center"
+            android:layout_centerInParent="true"
             android:textSize="16sp"/>
-    </LinearLayout>
+    </RelativeLayout>
     <SearchView
         android:id="@+id/query_edit_all"
         android:layout_width="match_parent"

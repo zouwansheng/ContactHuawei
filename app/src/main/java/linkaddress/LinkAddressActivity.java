@@ -1,9 +1,11 @@
 package linkaddress;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -72,8 +74,20 @@ public class LinkAddressActivity extends Activity {
             }
 
             @Override
-            public void deleteLink(CompanyAllModel.LinkAndAddress sortModel, int position) {
-
+            public void deleteLink(CompanyAllModel.LinkAndAddress sortModel, final int position) {
+                new AlertDialog.Builder(LinkAddressActivity.this)
+                        .setMessage("确定删除此联系人？")
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        sortModelList.remove(position);
+                        adapter.notifyDataSetChanged();
+                    }
+                }).show();
             }
         });
     }

@@ -230,62 +230,26 @@ public class EditActivity extends Activity {
         startActivityForResult(intent, LINK_AND_ADDRESS);
     }
 
-    /*//删除
+    //删除
     @OnClick(R.id.delete_this)
     void setDeleteThis(View view){
-        new AlertDialog.Builder(EditActivity.this).setMessage("确定删除客户？")
-        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                new Thread(new Runnable() {
+        new AlertDialog.Builder(EditActivity.this)
+                .setMessage("确定删除本客户？")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
-                    public void run() {
-                        int raw_contact_id = sortModel.getRaw_contact_id();
-                        //删除联系人
-                        deleteContact(raw_contact_id);
+                    public void onClick(DialogInterface dialog, int which) {
                     }
-                }).start();
-            }
-        }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
+                Intent intent = new Intent();
+                intent.putExtra("isDelete", "yes");
+                setResult(110, intent);
+                finish();
             }
         }).show();
-    }*/
-    /**
-     * 删除联系人
-     * */
-    private void deleteContact(int id) {
-        String[] RAW_PROJECTION = new String[] { ContactsContract.Data.RAW_CONTACT_ID, };
-
-        String RAW_CONTACTS_WHERE = ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID
-                + "=?"
-                + " and "
-                + ContactsContract.Data.MIMETYPE
-                + "="
-                + "'"
-                + ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE
-                + "'";
-        ContentResolver resolver = getContentResolver();
-        // 通过分组的id 查询得到RAW_CONTACT_ID
-        Cursor cursor = resolver.query(
-                ContactsContract.Data.CONTENT_URI, RAW_PROJECTION,
-                RAW_CONTACTS_WHERE, new String[] { groupId + "" }, "data1 asc");
-
-        while (cursor.moveToNext()) {
-            // RAW_CONTACT_ID
-            int col = cursor.getColumnIndex("raw_contact_id");
-            int raw_contact_id = cursor.getInt(col);
-            Log.e("zws", "raw_contact_id:" +
-                    raw_contact_id+"  id = "+id);
-
-            Uri dataUri = Uri.parse("content://com.android.contacts/data");
-            resolver.delete(dataUri, "raw_contact_id=?", new String[]{id+""});
-        }
-        cursor.close();
-        finish();
     }
+
     //查询
     @OnClick(R.id.btn_query)
     void btnQuery(View view) {
@@ -297,7 +261,11 @@ public class EditActivity extends Activity {
             @Override
             public void onResponse(Call<ComponyQueryBean> call, Response<ComponyQueryBean> response) {
                 progressDialog.dismiss();
-                if (response.body() == null || response.body().getResult() == null) return;
+                if (response.body() == null) return;
+                if (response.body().getResult() == null){
+                    Toast.makeText(EditActivity.this, "未找到相似公司名称", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 List<ComponyQueryBean.ResultBean> result = response.body().getResult();
                 CompanyDialog dialog = new CompanyDialog(EditActivity.this, result);
                 dialog.show();
@@ -366,7 +334,7 @@ public class EditActivity extends Activity {
                 linkAndAddresses = (List<CompanyAllModel.LinkAndAddress>) data.getSerializableExtra("linkData");
                 sortModel.setMembers(linkAndAddresses);
             }
-        }else if (requestCode == SELECT_LIKE_PRODUCT_RESULT){
+        }else if (resultCode == SELECT_LIKE_PRODUCT_RESULT){
             if (requestCode == SELECT_LIKE_PRODUCT){
                 series_id = data.getIntExtra("series_id", 1);
                 String likeName = data.getStringExtra("likeName");
@@ -375,6 +343,7 @@ public class EditActivity extends Activity {
         }
     }
 
+    //保存
     @OnClick(R.id.save_text)
     void saveEdit(View view){
         String companyName = productName.getText().toString();
@@ -420,6 +389,7 @@ public class EditActivity extends Activity {
 
         Intent intent = new Intent();
         intent.putExtra("companyAll", allModel);
+        intent.putExtra("isDelete", "no");
         setResult(110, intent);
         finish();
     }

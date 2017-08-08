@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,6 +43,8 @@ import bean.LoginResponse;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import cn.hugeterry.updatefun.UpdateFunGO;
+import cn.hugeterry.updatefun.config.UpdateKey;
 import contactui.MainContactActivity;
 import http.Inventroy;
 import http.LoginApi;
@@ -110,6 +113,12 @@ public class LoginActivity extends Activity {
                     READ_CONTACTS
             );
         }
+        UpdateKey.API_TOKEN = "d8980dd0017f3e0a7b038aec2c52d737";
+        UpdateKey.APP_ID = "598964b1ca87a83e97000006";
+        //下载方式:
+        //   UpdateKey.DialogOrNotification=UpdateKey.WITH_DIALOG;//通过Dialog来进行下载
+        //UpdateKey.DialogOrNotification=UpdateKey.WITH_NOTIFITION;通过通知栏来进行下载(默认)
+        UpdateFunGO.init(this);
     }
 
     @OnClick(R.id.img_delete)
@@ -128,11 +137,13 @@ public class LoginActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        UpdateFunGO.onResume(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        UpdateFunGO.onStop(this);
     }
 
 
@@ -154,7 +165,7 @@ public class LoginActivity extends Activity {
             LoginActivity.this.email.setText(email);
             String password = SharePreferenceUtils.getString("password", "error", LoginActivity.this);
             LoginActivity.this.password.setText(password);
-            toLogin(new View(LoginActivity.this));
+         //   toLogin(new View(LoginActivity.this));
         }
     }
 
@@ -294,12 +305,13 @@ public class LoginActivity extends Activity {
             progressDialog.dismiss();
         }
         String model = Build.BRAND;
-        if (!model.equals("HUAWEI")){
+        Log.e("zws", "model = "+model);
+        if (model.equals("Huawei") || model.equals("HUAWEI")){
+            finish();
+            Intent intent = new Intent(LoginActivity.this, MainContactActivity.class);
+            startActivity(intent);
+        }else {
             Toast.makeText(LoginActivity.this, "此APP功能仅限华为手机使用", Toast.LENGTH_LONG).show();
-            return;
         }
-        finish();
-        Intent intent = new Intent(LoginActivity.this, MainContactActivity.class);
-        startActivity(intent);
     }
 }

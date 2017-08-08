@@ -63,6 +63,7 @@ public class AlreadyInsertActivity extends Activity{
     private Inventroy inventroy;
     private List<CompanyAllModel> companyAllModels = new ArrayList<>();
     private int position;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,12 +89,12 @@ public class AlreadyInsertActivity extends Activity{
      * 之后每添加一个元素  拿元素的公司名字与已经添加的做比较，如果公司名字完全相同，则添加进同一个公司里面
      * */
     private void initView() {
+        progressDialog = new ProgressDialog(AlreadyInsertActivity.this);
+        progressDialog.setMessage("数据整合中...");
+        progressDialog.show();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ProgressDialog progressDialog = new ProgressDialog(AlreadyInsertActivity.this);
-                progressDialog.setMessage("数据整合中...");
-                progressDialog.show();
                 /*String organization = sortModelList.get(0).getOrganization();
                 CompanyAllModel.LinkAndAddress linkAndAddress = changeTYpeBean(sortModelList.get(0));
                 List<CompanyAllModel.LinkAndAddress> list = new ArrayList<>();
@@ -122,8 +123,6 @@ public class AlreadyInsertActivity extends Activity{
                     bean.setCompany_name(organization);
                     companyAllModels.add(bean);
                 }
-                /*Log.e("zws", "公司list的size = "+companyAllModels.size()+"name1 = "+companyAllModels.get(0).getMembers().size()+
-                "size = "+companyAllModels.get(2).getMembers().size());*/
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -131,7 +130,6 @@ public class AlreadyInsertActivity extends Activity{
                         insertAdapter.setSettingOnClickListener(new InsertAdapter.SettingOnClickListener() {
                             @Override
                             public void editOnclick(CompanyAllModel sortModel, int index) {
-                                Log.e("zws", "sortModel = "+sortModel);
                                 Intent intent = new Intent(AlreadyInsertActivity.this, EditActivity.class);
                                 intent.putExtra("sortModel", sortModel);
                                 intent.putExtra("groupId", groupId);
@@ -140,6 +138,7 @@ public class AlreadyInsertActivity extends Activity{
                             }
                         });
                         recyclerAlready.setAdapter(insertAdapter);
+                        progressDialog.dismiss();
                     }
                 });
             }
@@ -152,8 +151,12 @@ public class AlreadyInsertActivity extends Activity{
     public static CompanyAllModel.LinkAndAddress changeTYpeBean(SortModel sortModel){
         CompanyAllModel.LinkAndAddress linkAnd = new CompanyAllModel.LinkAndAddress();
         linkAnd.setName(sortModel.getName());
-        linkAnd.setStreet(sortModel.getPostal_address_v2().get(0));
-        linkAnd.setPhone(sortModel.getMobilePhone().get(0));
+        if (sortModel.getPostal_address_v2().size()>0){
+            linkAnd.setStreet(sortModel.getPostal_address_v2().get(0));
+        }
+        if (sortModel.getMobilePhone().size()>0){
+            linkAnd.setPhone(sortModel.getMobilePhone().get(0));
+        }
         linkAnd.setEmail(sortModel.getEmail_v2());
         return linkAnd;
     }
@@ -162,9 +165,15 @@ public class AlreadyInsertActivity extends Activity{
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == 110){
             if (requestCode == 100){
-                model = (CompanyAllModel) data.getSerializableExtra("companyAll");
-                companyAllModels.set(position, model);
-                insertAdapter.notifyDataSetChanged();
+                String isDelete = data.getStringExtra("isDelete");
+                if (isDelete.equals("no")){
+                    model = (CompanyAllModel) data.getSerializableExtra("companyAll");
+                    companyAllModels.set(position, model);
+                    insertAdapter.notifyDataSetChanged();
+                }else {
+                    companyAllModels.remove(position);
+                    insertAdapter.notifyDataSetChanged();
+                }
             }
         }
     }
@@ -177,14 +186,21 @@ public class AlreadyInsertActivity extends Activity{
     //完成
     @OnClick(R.id.finish_text)
     void uoloadMessage(View view){
+        progressDialog.setMessage("上传中。。。");
+        progressDialog.show();
         HashMap<Object, Object> hashMap = new HashMap<>();
         /*List<CompanyAllModel> modelList = new ArrayList<>();
         modelList.add(model);*/
+        if (companyAllModels.size() == 0 || companyAllModels == null){
+            Toast.makeText(AlreadyInsertActivity.this, "没有上传数据", Toast.LENGTH_SHORT).show();
+            return;
+        }
         hashMap.put("partners", companyAllModels);
         Call<CommitAllMessageBean> objectCall = inventroy.addPaterner(hashMap);
         objectCall.enqueue(new Callback<CommitAllMessageBean>() {
             @Override
             public void onResponse(Call<CommitAllMessageBean> call, Response<CommitAllMessageBean> response) {
+                progressDialog.dismiss();
                 if (response.body() == null)return;
                 if (response.body().getError()!=null){
                     Toast.makeText(AlreadyInsertActivity.this, response.body().getError().getMessage(), Toast.LENGTH_SHORT).show();
@@ -197,19 +213,17 @@ public class AlreadyInsertActivity extends Activity{
                                 int raw_contact_id = sortModelList.get(i).getRaw_contact_id();
                                 deleteContact(raw_contact_id);
                             }
+                            Intent intent = new Intent();
+                            setResult(MainContactActivity.UPDATE_CONTACT_RESULT, intent);
+                            finish();
                         }
                     }).start();
-                    Intent timeIntent = new Intent();
-                    timeIntent.setAction(MainContactActivity.TIME_CHANGED_ACTION);
-                    //发送广播，通知UI层时间改变了
-                    sendBroadcast(timeIntent);
-                    finish();
                 }
             }
 
             @Override
             public void onFailure(Call<CommitAllMessageBean> call, Throwable t) {
-
+                progressDialog.dismiss();
             }
         });
     }

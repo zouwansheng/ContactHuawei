@@ -28,7 +28,9 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 	}
 
 	private List<SortModel> list = null;
-	
+	private List<SortModel> list_array = new ArrayList<>();
+	private List<SortModel> selectList = new ArrayList<>();
+
 	private Context mContext;
 	public CheckboxClickListen checkboxClickListen;
 
@@ -47,8 +49,6 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 			this.selectList.clear();
 		}
 	}
-
-	private List<SortModel> selectList = new ArrayList<>();
 
 	public SortAdapter(Context mContext,List<SortModel> list){
 		this.mContext = mContext;
@@ -104,7 +104,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 		if (mContent.getMobilePhone().size()!=0)
 		viewHolder.tv_phome.setText(mContent.getMobilePhone().get(0));
 		viewHolder.tv_name.setText(mContent.getName().substring(0,1));
-        int colorRan = new Random().nextInt(3);
+        int colorRan = position%3;
 		if (colorRan == 0){
 			viewHolder.tv_name.setBackgroundResource(R.drawable.circle_pink);
 		}else if (colorRan == 1){
@@ -122,6 +122,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 
 			@Override
 			public void onClick(View v) {
+                checkboxClickListen.onItemCheck(mContent.getChecked());
 				// TODO Auto-generated method stub
 				if(mContent.getChecked()){
 					mContent.setChecked(false);
@@ -130,7 +131,6 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 					mContent.setChecked(true);
 					selectList.add(mContent);
 				}
-				checkboxClickListen.onItemCheck(mContent.getChecked());
 			}
 		});
 		return convertView;
@@ -164,7 +164,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer {
 		return list.get(position).getSortLetters().charAt(0);
 	}
 
-	
+
 	final static class ViewHolder{
 		TextView tvLetter;
 		TextView tvTitle;
