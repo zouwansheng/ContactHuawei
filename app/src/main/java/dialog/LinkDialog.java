@@ -80,23 +80,23 @@ public class LinkDialog extends Dialog implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.linker:
-                setTypeLink.setLinkName("contact");
+                setTypeLink.setLinkName("联系人", "contact");
                 break;
             case R.id.open_address:
-                setTypeLink.setLinkName("invoice");
+                setTypeLink.setLinkName("开票地址", "invoice");
                 break;
             case R.id.send_address:
-                setTypeLink.setLinkName("delivery");
+                setTypeLink.setLinkName("送货地址","delivery");
                 break;
             case R.id.other_address:
-                setTypeLink.setLinkName("other");
+                setTypeLink.setLinkName("其他地址","other");
                 break;
         }
         dismiss();
     }
 
     public interface SetTypeLink{
-        void setLinkName(String name);
+        void setLinkName(String name, String englishName);
     }
 
     public void sendNameLink(SetTypeLink setTypeLink){

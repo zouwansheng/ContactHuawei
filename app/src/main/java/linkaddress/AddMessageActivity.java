@@ -41,6 +41,7 @@ public class AddMessageActivity extends Activity {
     EditText editAddress;
 
     private CompanyAllModel.LinkAndAddress sortModel;
+    private String english = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -79,13 +80,13 @@ public class AddMessageActivity extends Activity {
             Toast.makeText(AddMessageActivity.this, "请输入手机号！", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (StringUtils.isNullOrEmpty(linkTypeTv.getText().toString())){
+        if (StringUtils.isNullOrEmpty(english)){
             Toast.makeText(AddMessageActivity.this, "请选择联系人类型！", Toast.LENGTH_SHORT).show();
             return;
         }
         sortModel.setName(editName.getText().toString());
         sortModel.setPhone(editPhone.getText().toString());
-        sortModel.setType(linkTypeTv.getText().toString());
+        sortModel.setType(english);
         sortModel.setEmail(editEmail.getText().toString());
         sortModel.setStreet(editAddress.getText().toString());
         Intent intent = new Intent();
@@ -100,8 +101,9 @@ public class AddMessageActivity extends Activity {
         dialog.show();
         dialog.sendNameLink(new LinkDialog.SetTypeLink() {
             @Override
-            public void setLinkName(String name) {
+            public void setLinkName(String name, String englishName) {
                 linkTypeTv.setText(name);
+                english = englishName;
             }
         });
     }

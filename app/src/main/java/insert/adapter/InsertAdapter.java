@@ -36,12 +36,17 @@ public class InsertAdapter extends BaseQuickAdapter<CompanyAllModel, BaseViewHol
         }
         helper.setText(R.id.name_product, item.getCompany_name())
         .setText(R.id.num_company_link, "本客户下联系人数目："+item.getMembers().size());
-        helper.getView(R.id.setting_image).setOnClickListener(new View.OnClickListener() {
+        helper.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 settingOnClickListener.editOnclick(item, helper.getPosition());
             }
         });
+        /*helper.getView(R.id.setting_image).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });*/
     }
 
     public interface  SettingOnClickListener{

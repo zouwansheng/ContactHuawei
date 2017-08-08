@@ -146,6 +146,19 @@ public class QueryListActivity extends Activity {
                         finish();
                     }
                 });
+
+                queryEditAll.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        likeQ(newText);
+                        return false;
+                    }
+                });
             }
 
             @Override
@@ -422,6 +435,23 @@ public class QueryListActivity extends Activity {
         }
         channelAdapter.setNewData(channelResult);
         channelAdapter.notifyDataSetChanged();
+    }
+
+    private void likeQ(String newText) {
+        if (StringUtils.isNullOrEmpty(newText)) {
+            likeResult = allListLike;
+        } else {
+            List<LikeProductBean.ResultBean> filterDateList = new ArrayList<>();
+            for (LikeProductBean.ResultBean bean : allListLike) {
+                if (bean.getName().contains(newText)) {
+                    filterDateList.add(bean);
+                }
+            }
+            likeResult = filterDateList;
+        }
+        likeAdapter.setNewData(likeResult);
+        likeAdapter
+                .notifyDataSetChanged();
     }
 
     private void originQ(String newText) {

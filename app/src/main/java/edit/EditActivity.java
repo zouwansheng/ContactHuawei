@@ -120,6 +120,7 @@ public class EditActivity extends Activity {
     private int type_id;//客户供应商id
     private int company_id;//公司id
     private List<CompanyAllModel.LinkAndAddress> linkAndAddresses = new ArrayList<>();
+    private String paterner_type;//客户类型
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -320,11 +321,15 @@ public class EditActivity extends Activity {
             }
         } else if (resultCode == SELECT_TAG_RESULT) {
             if (requestCode == SELECT_TAG) {
-                String paterner_type = data.getStringExtra("type");
+                paterner_type = data.getStringExtra("type");
                 type_id = data.getIntExtra("type_id", 1);
                 partner_level = data.getIntExtra("level", 1);
                 float rating = data.getFloatExtra("rating", 5);
-                tvCustomerTag.setText(paterner_type);
+                if (paterner_type.equals("customer")){
+                    tvCustomerTag.setText("客户");
+                }else if (paterner_type.equals("supplier")){
+                    tvCustomerTag.setText("供应商");
+                }
                 tvLevelTag.setText(partner_level+"st");
                 ratingTagActivity.setVisibility(View.VISIBLE);
                 ratingTagActivity.setRating(rating);
@@ -377,7 +382,7 @@ public class EditActivity extends Activity {
         allModel.setStar_cnt((int) ratingTagActivity.getRating());
         allModel.setSaleteam_id(team_id);
         allModel.setSaleman_id(partner_id);
-        allModel.setPartner_type(tvCustomerTag.getText().toString());
+        allModel.setPartner_type(paterner_type);
         allModel.setSaleman_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getUser_id());
         allModel.setSaleteam_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getTeam().getTeam_id());
         allModel.setPartner_lv(partner_level);

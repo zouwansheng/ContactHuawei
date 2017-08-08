@@ -426,6 +426,7 @@ public class MainContactActivity extends Activity {
                     adapter.getList().clear();
                     adapter.notifyDataSetChanged();
                 }
+                num_elected = 0;
                 getContactMessage();
             }
         }

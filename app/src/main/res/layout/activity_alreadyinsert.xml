@@ -34,16 +34,17 @@
             android:textColor="@color/color_70c8ea"/>
     </LinearLayout>
 
-    <contactui.ClearEditText
+    <SearchView
         android:id="@+id/edit_search"
         android:layout_width="match_parent"
-        android:layout_height="35dp"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/search_bar_edit_selector"
-        android:hint="搜索"
-        android:drawableLeft="@drawable/search_bar_icon_normal"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"/>
+        android:layout_height="40dp"
+        android:background="@drawable/edit_back"
+        android:focusable="false"
+        android:iconifiedByDefault="false"
+        android:queryHint="搜索"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="10dp" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_already"
