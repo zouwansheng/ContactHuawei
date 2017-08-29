@@ -6,36 +6,26 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.zws.ble.contacthuawei.MainActivity;
 import com.zws.ble.contacthuawei.MyApplication;
 import com.zws.ble.contacthuawei.R;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import bean.LoginBean;
 import bean.LoginDatabase;
@@ -43,8 +33,6 @@ import bean.LoginResponse;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import cn.hugeterry.updatefun.UpdateFunGO;
-import cn.hugeterry.updatefun.config.UpdateKey;
 import contactui.MainContactActivity;
 import http.Inventroy;
 import http.LoginApi;
@@ -113,12 +101,6 @@ public class LoginActivity extends Activity {
                     READ_CONTACTS
             );
         }
-        UpdateKey.API_TOKEN = "d8980dd0017f3e0a7b038aec2c52d737";
-        UpdateKey.APP_ID = "598964b1ca87a83e97000006";
-        //下载方式:
-        //   UpdateKey.DialogOrNotification=UpdateKey.WITH_DIALOG;//通过Dialog来进行下载
-        //UpdateKey.DialogOrNotification=UpdateKey.WITH_NOTIFITION;通过通知栏来进行下载(默认)
-        UpdateFunGO.init(this);
     }
 
     @OnClick(R.id.img_delete)
@@ -137,13 +119,11 @@ public class LoginActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        UpdateFunGO.onResume(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        UpdateFunGO.onStop(this);
     }
 
 

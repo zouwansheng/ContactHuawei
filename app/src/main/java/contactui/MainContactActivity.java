@@ -283,7 +283,7 @@ public class MainContactActivity extends Activity {
         checkActivity.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean ischeck) {
-                List<SortModel> list = adapter.getList();
+                List<SortModel> list = SourceDateList;
                 List<SortModel> list_beiyong = new ArrayList<>();
                 if (ischeck){
                     for (int i = 0; i < list.size(); i++) {
@@ -294,6 +294,7 @@ public class MainContactActivity extends Activity {
                     adapter.updateListView(list);
                     num_elected = list.size();
                 }else {
+                    mClearEditText.setText("");
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setChecked(false);
                         list_beiyong.add(list.get(i));
@@ -427,6 +428,7 @@ public class MainContactActivity extends Activity {
                     adapter.notifyDataSetChanged();
                 }
                 num_elected = 0;
+                numSelected.setText("0");
                 getContactMessage();
             }
         }

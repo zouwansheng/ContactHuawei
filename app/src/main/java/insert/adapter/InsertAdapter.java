@@ -28,14 +28,18 @@ public class InsertAdapter extends BaseQuickAdapter<CompanyAllModel, BaseViewHol
         if (item.getCompany_name()!=null && item.getCompany_name().length()>1){
             helper.setText(R.id.title_name, item.getCompany_name().substring(0,2));
         }
-        CompanyAllModel.LinkAndAddress linkAndAddress = item.getMembers().get(0);
-        if (!StringUtils.isNullOrEmpty(linkAndAddress.getName()) && !StringUtils.isNullOrEmpty(linkAndAddress.getPhone())){
-            helper.setText(R.id.sales_people, item.getMembers().get(0).getName()+" "+item.getMembers().get(0).getPhone());
+        if (item.getMembers()!=null){
+            CompanyAllModel.LinkAndAddress linkAndAddress = item.getMembers().get(0);
+            if (!StringUtils.isNullOrEmpty(linkAndAddress.getName()) && !StringUtils.isNullOrEmpty(linkAndAddress.getPhone())){
+                helper.setText(R.id.sales_people, item.getMembers().get(0).getName()+" "+item.getMembers().get(0).getPhone());
+            }else {
+                helper.setText(R.id.sales_people, " ");
+            }
+            helper.setText(R.id.num_company_link, "本客户下联系人数目："+item.getMembers().size());
         }else {
-            helper.setText(R.id.sales_people, " ");
+            helper.setText(R.id.num_company_link, "本客户下联系人数目：0");
         }
-        helper.setText(R.id.name_product, item.getCompany_name())
-        .setText(R.id.num_company_link, "本客户下联系人数目："+item.getMembers().size());
+        helper.setText(R.id.name_product, item.getCompany_name());
         helper.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -108,10 +108,13 @@ public class AlreadyInsertActivity extends Activity {
                         sortModelList.remove(sortModelList.get(i));
                     }
                 }*/
+            //    List<SortModel> modelList = (List<SortModel>) getIntent().getSerializableExtra("data");
                 for (int i = 0; i < sortModelList.size(); i++) {
+                    Log.e("zws", "sizeAll = "+sortModelList.size());
                     String organization = sortModelList.get(i).getOrganization();
                     CompanyAllModel.LinkAndAddress linkAndAddress = changeTYpeBean(sortModelList.get(i));
                     List<CompanyAllModel.LinkAndAddress> list = new ArrayList<>();
+                    List<SortModel> modelList = new ArrayList<>();
                     list.add(linkAndAddress);
                     for (int j = i + 1; j < sortModelList.size(); j++) {
                         if (organization == null)
@@ -119,9 +122,12 @@ public class AlreadyInsertActivity extends Activity {
                         String organization1 = sortModelList.get(j).getOrganization();
                         if (organization.equals(organization1)) {
                             list.add(changeTYpeBean(sortModelList.get(j)));
-                            sortModelList.remove(sortModelList.get(j));
+                            modelList.add(sortModelList.get(j));
+                        //    sortModelList.remove(sortModelList.get(j));
+                            Log.e("zws", "size = "+sortModelList.size());
                         }
                     }
+                    sortModelList.removeAll(modelList);
                     CompanyAllModel bean = new CompanyAllModel();
                     bean.setMembers(list);
                     bean.setCompany_name(organization);
@@ -188,8 +194,12 @@ public class AlreadyInsertActivity extends Activity {
         if (sortModel.getPostal_address_v2().size() > 0) {
             linkAnd.setStreet(sortModel.getPostal_address_v2().get(0));
         }
+        StringBuffer stringBuffer = new StringBuffer();
         if (sortModel.getMobilePhone().size() > 0) {
-            linkAnd.setPhone(sortModel.getMobilePhone().get(0));
+            for (int i = 0; i <sortModel.getMobilePhone().size(); i++) {
+                stringBuffer.append(sortModel.getMobilePhone().get(i)+", ");
+            }
+            linkAnd.setPhone(String.valueOf(stringBuffer));
         }
         linkAnd.setEmail(sortModel.getEmail_v2());
         return linkAnd;
@@ -225,6 +235,7 @@ public class AlreadyInsertActivity extends Activity {
             Toast.makeText(AlreadyInsertActivity.this, "没有上传数据", Toast.LENGTH_SHORT).show();
             return;
         }
+        finishText.setClickable(false);
         progressDialog.setMessage("上传中。。。");
         progressDialog.show();
         HashMap<Object, Object> hashMap = new HashMap<>();
@@ -233,6 +244,7 @@ public class AlreadyInsertActivity extends Activity {
         objectCall.enqueue(new Callback<CommitAllMessageBean>() {
             @Override
             public void onResponse(Call<CommitAllMessageBean> call, Response<CommitAllMessageBean> response) {
+                finishText.setClickable(false);
                 progressDialog.dismiss();
                 if (response.body() == null) return;
                 if (response.body().getError() != null) {
@@ -256,6 +268,7 @@ public class AlreadyInsertActivity extends Activity {
 
             @Override
             public void onFailure(Call<CommitAllMessageBean> call, Throwable t) {
+                finishText.setClickable(false);
                 progressDialog.dismiss();
             }
         });

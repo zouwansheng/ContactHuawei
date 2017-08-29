@@ -268,6 +268,7 @@
                     android:layout_height="30dp"
                     android:background="@drawable/customer_text"
                     android:text="客户"
+                    android:visibility="gone"
                     android:layout_below="@+id/tv_biaoqian"
                     android:gravity="center"
                     android:layout_marginLeft="15dp"
@@ -282,6 +283,7 @@
                     android:gravity="center"
                     android:layout_marginLeft="15dp"
                     android:layout_marginTop="5dp"
+                    android:visibility="gone"
                     android:layout_toRightOf="@+id/tv_customer_tag"/>
                 <RatingBar
                     style="@style/Base.Widget.AppCompat.RatingBar.Small"

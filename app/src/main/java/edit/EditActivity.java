@@ -113,8 +113,8 @@ public class EditActivity extends Activity {
     private int country_id;
     private int source_id;//渠道
     private int src_id;//来源
-    private int team_id;//销售团队
-    private int partner_id;//销售员
+    private int team_id = -111;//销售团队
+    private int partner_id = -110;//销售员
     private int series_id;//感兴趣的产品
     private int partner_level;//等级
     private int type_id;//客户供应商id
@@ -149,6 +149,9 @@ public class EditActivity extends Activity {
         linkAddress.setText(linkAndAddresses.size()+"");
         LoginResponse userInfoBean = UserManager.getSingleton().getUserInfoBean();
         if (userInfoBean!=null){
+            if (userInfoBean.getResult().getRes_data().getTeam() == null){
+                return;
+            }
             saleTeam.setText(userInfoBean.getResult().getRes_data().getTeam().getTeam_name());
             saleWorker.setText(userInfoBean.getResult().getRes_data().getName());
         }
@@ -330,7 +333,9 @@ public class EditActivity extends Activity {
                 }else if (paterner_type.equals("supplier")){
                     tvCustomerTag.setText("供应商");
                 }
+                tvCustomerTag.setVisibility(View.VISIBLE);
                 tvLevelTag.setText(partner_level+"st");
+                tvLevelTag.setVisibility(View.VISIBLE);
                 ratingTagActivity.setVisibility(View.VISIBLE);
                 ratingTagActivity.setRating(rating);
             }
@@ -338,6 +343,7 @@ public class EditActivity extends Activity {
             if (requestCode == LINK_AND_ADDRESS){
                 linkAndAddresses = (List<CompanyAllModel.LinkAndAddress>) data.getSerializableExtra("linkData");
                 sortModel.setMembers(linkAndAddresses);
+                linkAddress.setText(linkAndAddresses.size()+"");
             }
         }else if (resultCode == SELECT_LIKE_PRODUCT_RESULT){
             if (requestCode == SELECT_LIKE_PRODUCT){
@@ -361,11 +367,11 @@ public class EditActivity extends Activity {
             Toast.makeText(EditActivity.this, "请选择公司名", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (StringUtils.isNullOrEmpty(team)){
+        if (StringUtils.isNullOrEmpty(team) || "请选择销售团队".equals(team)){
             Toast.makeText(EditActivity.this, "请选择销售团队", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (StringUtils.isNullOrEmpty(saleman)){
+        if (StringUtils.isNullOrEmpty(saleman) || "请选择".equals(saleman)){
             Toast.makeText(EditActivity.this, "请选择销售员", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -380,18 +386,27 @@ public class EditActivity extends Activity {
         allModel.setCrm_source_id(src_id);
         // TODO: 2017/8/4 需要判断
         allModel.setStar_cnt((int) ratingTagActivity.getRating());
-        allModel.setSaleteam_id(team_id);
-        allModel.setSaleman_id(partner_id);
         allModel.setPartner_type(paterner_type);
-        allModel.setSaleman_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getUser_id());
-        allModel.setSaleteam_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getTeam().getTeam_id());
+        if (team_id !=-111){
+            allModel.setSaleteam_id(team_id);
+        }else {
+            if (UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getTeam()!=null)
+                allModel.setSaleteam_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getTeam().getTeam_id());
+        }
+        if (partner_id != -110){
+            allModel.setSaleman_id(partner_id);
+        }else {
+            if (UserManager.getSingleton().getUserInfoBean()!=null)
+                allModel.setSaleman_id(UserManager.getSingleton().getUserInfoBean().getResult().getRes_data().getUser_id());
+        }
         allModel.setPartner_lv(partner_level);
         allModel.setTag_list(type_id);
         allModel.setCompany_id(company_id);
         // TODO: 2017/8/4 需要判断
         // TODO: 2017/8/4 需要判断
-        allModel.setMembers(linkAndAddresses);
-
+        if (linkAndAddresses!=null && linkAndAddresses.size()>0){
+            allModel.setMembers(linkAndAddresses);
+        }
         Intent intent = new Intent();
         intent.putExtra("companyAll", allModel);
         intent.putExtra("isDelete", "no");
